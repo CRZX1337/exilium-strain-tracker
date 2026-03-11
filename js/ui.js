@@ -3,22 +3,23 @@
 // ==========================================
 
 const UI = {
-    // --- Render strain cards into the grid ---
-    renderStrains(strains) {
-        const grid = document.getElementById('strain-grid');
-        if (!strains || strains.length === 0) {
-            grid.innerHTML = `
+  // --- Render strain cards into the grid ---
+  renderStrains(strains) {
+    const grid = document.getElementById('strain-grid');
+    if (!strains || strains.length === 0) {
+      grid.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">🌿</div>
           <h3>Keine Sorten eingetragen</h3>
           <p>Füge deine erste Sorte hinzu, um deine Sammlung zu starten.</p>
         </div>
       `;
-            return;
-        }
+      return;
+    }
 
-        grid.innerHTML = strains.map((strain, i) => `
+    grid.innerHTML = strains.map((strain, i) => `
       <div class="strain-card" onclick="App.showDetail('${strain.id}')" style="animation-delay: ${i * 0.03}s">
+        ${strain.image_url ? `<div class="strain-image-container"><img src="${strain.image_url}" alt="${this.escapeHtml(strain.name)}" class="strain-image" loading="lazy"></div>` : ''}
         <div class="strain-card-header">
           <h3 class="strain-name">${this.escapeHtml(strain.name)}</h3>
           <span class="strain-type-badge ${strain.type.toLowerCase()}">${strain.type}</span>
@@ -44,104 +45,110 @@ const UI = {
         </div>
       </div>
     `).join('');
-    },
+  },
 
-    // --- Render star icons ---
-    renderStars(rating) {
-        let stars = '';
-        for (let i = 1; i <= 5; i++) {
-            stars += `<span class="star ${i <= rating ? 'filled' : ''}">★</span>`;
-        }
-        return stars;
-    },
+  // --- Render star icons ---
+  renderStars(rating) {
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+      stars += `<span class="star ${i <= rating ? 'filled' : ''}">★</span>`;
+    }
+    return stars;
+  },
 
-    // --- Render star rating input ---
-    renderStarInput(containerId, currentRating = 0) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = '';
-        for (let i = 1; i <= 5; i++) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = `star-btn ${i <= currentRating ? 'filled' : ''}`;
-            btn.textContent = '★';
-            btn.onclick = () => {
-                App.formRating = i;
-                this.renderStarInput(containerId, i);
-            };
-            container.appendChild(btn);
-        }
-    },
+  // --- Render star rating input ---
+  renderStarInput(containerId, currentRating = 0) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `star-btn ${i <= currentRating ? 'filled' : ''}`;
+      btn.textContent = '★';
+      btn.onclick = () => {
+        App.formRating = i;
+        this.renderStarInput(containerId, i);
+      };
+      container.appendChild(btn);
+    }
+  },
 
-    // --- Update stats bar ---
-    updateStats(strains) {
-        const totalEl = document.getElementById('stat-total');
-        const avgEl = document.getElementById('stat-avg');
-        const topTypeEl = document.getElementById('stat-top-type');
-        const avgThcEl = document.getElementById('stat-avg-thc');
+  // --- Update stats bar ---
+  updateStats(strains) {
+    const totalEl = document.getElementById('stat-total');
+    const avgEl = document.getElementById('stat-avg');
+    const topTypeEl = document.getElementById('stat-top-type');
+    const avgThcEl = document.getElementById('stat-avg-thc');
 
-        totalEl.textContent = strains.length;
+    totalEl.textContent = strains.length;
 
-        if (strains.length === 0) {
-            avgEl.textContent = '—';
-            topTypeEl.textContent = '—';
-            avgThcEl.textContent = '—';
-            return;
-        }
+    if (strains.length === 0) {
+      avgEl.textContent = '—';
+      topTypeEl.textContent = '—';
+      avgThcEl.textContent = '—';
+      return;
+    }
 
-        const avgRating = (strains.reduce((sum, s) => sum + (s.rating || 0), 0) / strains.length).toFixed(1);
-        avgEl.textContent = avgRating;
+    const avgRating = (strains.reduce((sum, s) => sum + (s.rating || 0), 0) / strains.length).toFixed(1);
+    avgEl.textContent = avgRating;
 
-        const typeCounts = {};
-        strains.forEach(s => {
-            typeCounts[s.type] = (typeCounts[s.type] || 0) + 1;
-        });
-        const topType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0];
-        topTypeEl.textContent = topType ? topType[0] : '—';
+    const typeCounts = {};
+    strains.forEach(s => {
+      typeCounts[s.type] = (typeCounts[s.type] || 0) + 1;
+    });
+    const topType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0];
+    topTypeEl.textContent = topType ? topType[0] : '—';
 
-        const thcStrains = strains.filter(s => s.thc_content != null);
-        const avgThc = thcStrains.length > 0
-            ? (thcStrains.reduce((sum, s) => sum + s.thc_content, 0) / thcStrains.length).toFixed(1) + '%'
-            : '—';
-        avgThcEl.textContent = avgThc;
-    },
+    const thcStrains = strains.filter(s => s.thc_content != null);
+    const avgThc = thcStrains.length > 0
+      ? (thcStrains.reduce((sum, s) => sum + s.thc_content, 0) / thcStrains.length).toFixed(1) + '%'
+      : '—';
+    avgThcEl.textContent = avgThc;
+  },
 
-    // --- Show/hide modals ---
-    showModal(id) {
-        const overlay = document.getElementById(id);
-        overlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    },
+  // --- Show/hide modals ---
+  showModal(id) {
+    const overlay = document.getElementById(id);
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  },
 
-    hideModal(id) {
-        const overlay = document.getElementById(id);
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
-    },
+  hideModal(id) {
+    const overlay = document.getElementById(id);
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  },
 
-    // --- Toast notifications ---
-    showToast(message, type = 'success') {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `
+  // --- Toast notifications ---
+  showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
       <span>${type === 'success' ? '✓' : '✗'}</span>
       <span>${this.escapeHtml(message)}</span>
     `;
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    },
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  },
 
-    // --- Show loading spinner ---
-    showLoading() {
-        document.getElementById('strain-grid').innerHTML = `
+  // --- Show loading spinner ---
+  showLoading() {
+    document.getElementById('strain-grid').innerHTML = `
       <div class="loading"><div class="spinner"></div></div>
     `;
-    },
+  },
 
-    // --- Detail modal content ---
-    renderDetail(strain) {
-        const content = document.getElementById('detail-content');
-        content.innerHTML = `
+  // --- Detail modal content ---
+  renderDetail(strain) {
+    const content = document.getElementById('detail-content');
+    content.innerHTML = `
+      ${strain.image_url ? `
+        <div class="detail-image-container" style="margin: -24px -28px 24px -28px; height: 260px; overflow: hidden; border-radius: var(--radius-xl) var(--radius-xl) 0 0; position: relative;">
+          <img src="${strain.image_url}" alt="${this.escapeHtml(strain.name)}" style="width: 100%; height: 100%; object-fit: cover;">
+          <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, var(--bg-secondary) 100%);"></div>
+        </div>
+      ` : ''}
       <div class="strain-card-header" style="margin-bottom:16px">
         <h2 class="strain-name" style="font-size:1.5rem">${this.escapeHtml(strain.name)}</h2>
         <span class="strain-type-badge ${strain.type.toLowerCase()}">${strain.type}</span>
@@ -186,19 +193,19 @@ const UI = {
         <div class="detail-value">${this.formatDate(strain.created_at)}</div>
       </div>
     `;
-    },
+  },
 
-    // --- Helpers ---
-    escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    },
+  // --- Helpers ---
+  escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  },
 
-    formatDate(dateStr) {
-        if (!dateStr) return '';
-        const d = new Date(dateStr);
-        return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    }
+  formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
 };

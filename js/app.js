@@ -200,7 +200,30 @@ const App = {
             notes: document.getElementById('strain-notes').value.trim() || null,
         };
 
+        const fileInput = document.getElementById('strain-image');
+
         try {
+            // Handle image upload if a file was selected
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+
+                UI.showToast('Lade Bild hoch...', 'info');
+
+                const { error: uploadError } = await db.storage
+                    .from('strain-images')
+                    .upload(fileName, file);
+
+                if (uploadError) throw uploadError;
+
+                const { data } = db.storage
+                    .from('strain-images')
+                    .getPublicUrl(fileName);
+
+                strainData.image_url = data.publicUrl;
+            }
+
             if (this.editingId) {
                 // Update
                 const { error } = await db
@@ -255,6 +278,7 @@ const App = {
         document.getElementById('strain-effects').value = strain.effects || '';
         document.getElementById('strain-taste').value = strain.taste || '';
         document.getElementById('strain-notes').value = strain.notes || '';
+        document.getElementById('strain-image').value = ''; // Reset file input
         UI.renderStarInput('rating-input', this.formRating);
 
         UI.showModal('form-modal');
