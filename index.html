@@ -137,8 +137,19 @@
         <form id="strain-form" onsubmit="event.preventDefault(); App.saveStrain();">
 
           <div class="form-group">
-            <label class="form-label" for="strain-name">Name *</label>
-            <input type="text" id="strain-name" class="form-input" placeholder="z.B. Wedding Cake" required>
+            <label class="form-label" for="strain-name">Name (Strain) *</label>
+            <input type="text" id="strain-name" class="form-input" placeholder="z.B. Dosidos" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="strain-medical-name">Medizinischer Name</label>
+              <input type="text" id="strain-medical-name" class="form-input" placeholder="z.B. NICE 20/1 DD">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="strain-importer">Importeur</label>
+              <input type="text" id="strain-importer" class="form-input" placeholder="z.B. Nimbus">
+            </div>
           </div>
 
           <div class="form-group">

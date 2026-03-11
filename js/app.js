@@ -192,6 +192,8 @@ const App = {
         const strainData = {
             name,
             type,
+            medical_name: document.getElementById('strain-medical-name').value.trim() || null,
+            importer: document.getElementById('strain-importer').value.trim() || null,
             thc_content: parseFloat(document.getElementById('strain-thc').value) || null,
             cbd_content: parseFloat(document.getElementById('strain-cbd').value) || null,
             rating: this.formRating || null,
@@ -272,6 +274,8 @@ const App = {
 
         document.getElementById('form-title').textContent = 'Sorte bearbeiten';
         document.getElementById('strain-name').value = strain.name;
+        document.getElementById('strain-medical-name').value = strain.medical_name || '';
+        document.getElementById('strain-importer').value = strain.importer || '';
         document.getElementById('strain-type').value = strain.type;
         document.getElementById('strain-thc').value = strain.thc_content || '';
         document.getElementById('strain-cbd').value = strain.cbd_content || '';

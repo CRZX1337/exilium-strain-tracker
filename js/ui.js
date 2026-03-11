@@ -21,7 +21,10 @@ const UI = {
       <div class="strain-card" onclick="App.showDetail('${strain.id}')" style="animation-delay: ${i * 0.03}s">
         ${strain.image_url ? `<div class="strain-image-container"><img src="${strain.image_url}" alt="${this.escapeHtml(strain.name)}" class="strain-image" loading="lazy"></div>` : ''}
         <div class="strain-card-header">
-          <h3 class="strain-name">${this.escapeHtml(strain.name)}</h3>
+          <div>
+            <h3 class="strain-name">${this.escapeHtml(strain.name)}</h3>
+            ${strain.medical_name ? `<div class="strain-medical-name" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">${this.escapeHtml(strain.medical_name)}</div>` : ''}
+          </div>
           <span class="strain-type-badge ${strain.type.toLowerCase()}">${strain.type}</span>
         </div>
         <div class="strain-stars">
@@ -150,7 +153,10 @@ const UI = {
         </div>
       ` : ''}
       <div class="strain-card-header" style="margin-bottom:16px">
-        <h2 class="strain-name" style="font-size:1.5rem">${this.escapeHtml(strain.name)}</h2>
+        <div>
+          <h2 class="strain-name" style="font-size:1.5rem">${this.escapeHtml(strain.name)}</h2>
+          ${strain.medical_name ? `<div class="strain-medical-name" style="font-size: 1rem; color: var(--text-secondary); margin-top: 4px;">${this.escapeHtml(strain.medical_name)}</div>` : ''}
+        </div>
         <span class="strain-type-badge ${strain.type.toLowerCase()}">${strain.type}</span>
       </div>
       <div class="strain-stars" style="margin-bottom:20px;font-size:20px">
@@ -170,6 +176,12 @@ const UI = {
           <div class="label">Bewertung</div>
         </div>
       </div>
+      ${strain.importer ? `
+        <div class="detail-section" style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); padding:12px 16px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+          <div class="detail-label" style="margin:0;">Importeur</div>
+          <div class="detail-value" style="font-weight:600; color:var(--text-primary);">${this.escapeHtml(strain.importer)}</div>
+        </div>
+      ` : ''}
       ${strain.effects ? `
         <div class="detail-section" style="margin-top:20px">
           <div class="detail-label">Wirkung</div>
