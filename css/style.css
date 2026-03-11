@@ -1194,6 +1194,17 @@ body::before {
     animation: flashHighlight 1.5s ease-out;
 }
 
+/* --- Hide Default Number Spinners --- */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
 .strain-card.removing {
     animation: slideOutScaleDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     pointer-events: none;
