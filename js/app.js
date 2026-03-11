@@ -278,8 +278,8 @@ const App = {
             this.resetForm();
 
             // Re-render and clear flags
-            this.renderFilteredStrains();
-            this.updateStats();
+            this.applyFilters();
+            UI.updateStats(this.strains);
 
             setTimeout(() => {
                 this.strains.forEach(s => {
@@ -361,8 +361,8 @@ const App = {
 
             // Remove from local state
             this.strains = this.strains.filter(s => s.id !== id);
-            this.renderFilteredStrains();
-            this.updateStats();
+            this.applyFilters();
+            UI.updateStats(this.strains);
         } catch (err) {
             console.error('Error deleting strain:', err);
             UI.showToast('Fehler beim Löschen: ' + err.message, 'error');
