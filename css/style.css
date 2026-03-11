@@ -1365,9 +1365,8 @@ body::before {
     display: inline-block;
 }
 
-.loader-text,
-.loader-text span {
-    /* Apply sweep to entire container text and children */
+.loader-text {
+    /* Apply sweep to entire container text */
     background: linear-gradient(90deg,
             var(--text-primary) 0%,
             var(--text-primary) 30%,
@@ -1378,20 +1377,27 @@ body::before {
             var(--accent) 60%,
             var(--text-primary) 70%,
             var(--text-primary) 100%);
-    background-size: 300% auto;
+    background-size: 300% 100%;
     color: transparent !important;
+    -webkit-text-fill-color: transparent;
     -webkit-background-clip: text;
     background-clip: text;
     animation: lightSweep 4.5s linear infinite;
 }
 
+.loader-text span {
+    /* Mobile Safari fix: only parent carries the sweeping gradient */
+    color: transparent !important;
+    -webkit-text-fill-color: transparent;
+}
+
 @keyframes lightSweep {
     0% {
-        background-position: 250% center;
+        background-position: 100% 50%;
     }
 
     100% {
-        background-position: -150% center;
+        background-position: -100% 50%;
     }
 }
 
