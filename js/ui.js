@@ -33,6 +33,7 @@ const UI = {
         <div class="strain-meta">
           <span class="strain-meta-item"><strong>${strain.thc_content ?? '—'}%</strong> THC</span>
           <span class="strain-meta-item"><strong>${strain.cbd_content ?? '—'}%</strong> CBD</span>
+          ${strain.price ? `<span class="strain-meta-item"><strong>${strain.price}€</strong> PREIS</span>` : ''}
         </div>
         ${strain.effects ? `<p class="strain-effects">${this.escapeHtml(strain.effects)}</p>` : ''}
         <div class="strain-card-footer">
@@ -158,12 +159,15 @@ const UI = {
           <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, var(--bg-secondary) 100%); pointer-events: none;"></div>
         </div>
       ` : ''}
-      <div class="strain-card-header" style="margin-bottom:16px">
+      <div class="strain-card-header" style="margin-bottom:16px; align-items: flex-start;">
         <div>
           <h2 class="strain-name" style="font-size:1.5rem">${this.escapeHtml(strain.name)}</h2>
           ${strain.medical_name ? `<div class="strain-medical-name" style="font-size: 1rem; color: var(--text-secondary); margin-top: 4px;">${this.escapeHtml(strain.medical_name)}</div>` : ''}
         </div>
-        <span class="strain-type-badge ${strain.type.toLowerCase()}">${strain.type}</span>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+          <span class="strain-type-badge ${strain.type.toLowerCase()}">${strain.type}</span>
+          ${strain.price ? `<span style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">${strain.price}€<span style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary);">/g</span></span>` : ''}
+        </div>
       </div>
       <div class="strain-stars" style="margin-bottom:20px;font-size:20px">
         ${this.renderStars(strain.rating)}

@@ -231,6 +231,7 @@ const App = {
             importer: document.getElementById('strain-importer').value.trim() || null,
             thc_content: parseFloat(document.getElementById('strain-thc').value) || null,
             cbd_content: parseFloat(document.getElementById('strain-cbd').value) || null,
+            price: parseFloat(document.getElementById('strain-price').value) || null,
             rating: this.formRating || null,
             effects: document.getElementById('strain-effects').value.trim() || null,
             taste: document.getElementById('strain-taste').value.trim() || null,
@@ -338,6 +339,7 @@ const App = {
         document.getElementById('strain-type').value = strain.type;
         document.getElementById('strain-thc').value = strain.thc_content || '';
         document.getElementById('strain-cbd').value = strain.cbd_content || '';
+        document.getElementById('strain-price').value = strain.price || '';
         document.getElementById('strain-effects').value = strain.effects || '';
         document.getElementById('strain-taste').value = strain.taste || '';
         document.getElementById('strain-notes').value = strain.notes || '';
