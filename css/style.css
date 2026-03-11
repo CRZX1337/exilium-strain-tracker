@@ -902,7 +902,7 @@ body::before {
 
 .detail-meta-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     padding: 16px;
     background: var(--bg-glass);

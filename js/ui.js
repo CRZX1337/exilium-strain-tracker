@@ -20,15 +20,17 @@ const UI = {
     grid.innerHTML = strains.map((strain, i) => `
       <div class="strain-card" onclick="App.showDetail('${strain.id}')" style="animation-delay: ${i * 0.03}s">
         ${strain.image_url ? `<div class="strain-image-container"><img src="${strain.image_url}" alt="${this.escapeHtml(strain.name)}" class="strain-image" loading="lazy"></div>` : ''}
-        <div class="strain-card-header">
-          <div>
-            <h3 class="strain-name">${this.escapeHtml(strain.name)}</h3>
-            ${strain.medical_name ? `<div class="strain-medical-name" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">${this.escapeHtml(strain.medical_name)}</div>` : ''}
+        <div class="strain-card-header" style="align-items: flex-start; justify-content: space-between;">
+          <div style="flex-grow: 1; min-width: 0; padding-right: 12px;">
+            <h3 class="strain-name" style="margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHtml(strain.name)}</h3>
+            ${strain.medical_name ? `<div class="strain-medical-name" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">${this.escapeHtml(strain.medical_name)}</div>` : ''}
           </div>
-          <span class="strain-type-badge ${strain.type.toLowerCase()}">${strain.type}</span>
-        </div>
-        <div class="strain-stars">
-          ${this.renderStars(strain.rating)}
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0;">
+            <span class="strain-type-badge ${strain.type.toLowerCase()}">${strain.type}</span>
+            <div class="strain-stars" style="display: inline-flex; font-size: 24px; line-height: 1;">
+              ${this.renderStars(strain.rating)}
+            </div>
+          </div>
         </div>
         <div class="strain-meta">
           <span class="strain-meta-item"><strong>${strain.thc_content ?? '—'}%</strong> THC</span>
@@ -159,18 +161,17 @@ const UI = {
           <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, var(--bg-secondary) 100%); pointer-events: none;"></div>
         </div>
       ` : ''}
-      <div class="strain-card-header" style="margin-bottom:16px; align-items: flex-start;">
-        <div>
-          <h2 class="strain-name" style="font-size:1.5rem">${this.escapeHtml(strain.name)}</h2>
-          ${strain.medical_name ? `<div class="strain-medical-name" style="font-size: 1rem; color: var(--text-secondary); margin-top: 4px;">${this.escapeHtml(strain.medical_name)}</div>` : ''}
+      <div class="strain-card-header" style="margin-bottom:20px; align-items: flex-start; justify-content: space-between;">
+        <div style="flex-grow: 1; padding-right: 16px;">
+          <h2 class="strain-name" style="font-size:1.5rem; margin: 0;">${this.escapeHtml(strain.name)}</h2>
+          ${strain.medical_name ? `<div class="strain-medical-name" style="font-size: 1rem; color: var(--text-secondary); margin-top: 6px;">${this.escapeHtml(strain.medical_name)}</div>` : ''}
         </div>
-        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex-shrink: 0;">
           <span class="strain-type-badge ${strain.type.toLowerCase()}">${strain.type}</span>
-          ${strain.price ? `<span style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">${strain.price}€<span style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary);">/g</span></span>` : ''}
+          <div class="strain-stars" style="font-size:32px; display: inline-flex; line-height: 1;">
+            ${this.renderStars(strain.rating)}
+          </div>
         </div>
-      </div>
-      <div class="strain-stars" style="margin-bottom:20px;font-size:20px">
-        ${this.renderStars(strain.rating)}
       </div>
       <div class="detail-meta-grid">
         <div class="detail-meta-item">
@@ -185,6 +186,12 @@ const UI = {
           <div class="value">${strain.rating || '—'}/5</div>
           <div class="label">Bewertung</div>
         </div>
+        ${strain.price ? `
+        <div class="detail-meta-item">
+          <div class="value" style="display: flex; align-items: baseline; justify-content: center; gap: 2px;">${strain.price}€<span style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);">/g</span></div>
+          <div class="label">PREIS</div>
+        </div>
+        ` : ''}
       </div>
       ${strain.importer ? `
         <div class="detail-section" style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); padding:12px 16px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
@@ -192,27 +199,29 @@ const UI = {
           <div class="detail-value" style="font-weight:600; color:var(--text-primary);">${this.escapeHtml(strain.importer)}</div>
         </div>
       ` : ''}
-      ${strain.effects ? `
-        <div class="detail-section" style="margin-top:20px">
-          <div class="detail-label">Wirkung</div>
-          <div class="detail-value">${this.escapeHtml(strain.effects)}</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+        ${strain.effects ? `
+          <div class="detail-section" style="margin: 0;">
+            <div class="detail-label">Wirkung</div>
+            <div class="detail-value">${this.escapeHtml(strain.effects)}</div>
+          </div>
+        ` : ''}
+        ${strain.taste ? `
+          <div class="detail-section" style="margin: 0;">
+            <div class="detail-label">Geschmack</div>
+            <div class="detail-value">${this.escapeHtml(strain.taste)}</div>
+          </div>
+        ` : ''}
+        ${strain.notes ? `
+          <div class="detail-section" style="margin: 0;">
+            <div class="detail-label">Notizen</div>
+            <div class="detail-value">${this.escapeHtml(strain.notes)}</div>
+          </div>
+        ` : ''}
+        <div class="detail-section" style="margin: 0;">
+          <div class="detail-label">Hinzugefügt am</div>
+          <div class="detail-value">${this.formatDate(strain.created_at)}</div>
         </div>
-      ` : ''}
-      ${strain.taste ? `
-        <div class="detail-section">
-          <div class="detail-label">Geschmack</div>
-          <div class="detail-value">${this.escapeHtml(strain.taste)}</div>
-        </div>
-      ` : ''}
-      ${strain.notes ? `
-        <div class="detail-section">
-          <div class="detail-label">Notizen</div>
-          <div class="detail-value">${this.escapeHtml(strain.notes)}</div>
-        </div>
-      ` : ''}
-      <div class="detail-section">
-        <div class="detail-label">Hinzugefügt am</div>
-        <div class="detail-value">${this.formatDate(strain.created_at)}</div>
       </div>
     `;
   },
