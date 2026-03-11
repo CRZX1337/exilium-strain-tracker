@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Exilium — Persönlicher Medical Cannabis Strain Tracker. Verwalte und bewerte deine medizinischen Cannabis-Sorten.">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Exilium — Strain Tracker</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="header">
+    <div class="container header-inner">
+      <a href="#" class="logo">
+        <div class="logo-icon">🌿</div>
+        <div class="logo-text">Exilium <span>Strains</span></div>
+      </a>
+      <div class="header-actions">
+        <button id="add-strain-btn" class="btn btn-secondary" onclick="App.openAddStrain()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Neue Sorte
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="container">
+
+    <!-- Stats Bar -->
+    <section class="stats-bar">
+      <div class="stat-card accent">
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-label">Sorten</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-avg">—</div>
+        <div class="stat-label">⌀ Bewertung</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-top-type">—</div>
+        <div class="stat-label">Top Typ</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-avg-thc">—</div>
+        <div class="stat-label">⌀ THC</div>
+      </div>
+    </section>
+
+    <!-- Controls Bar -->
+    <section class="controls-bar">
+      <div class="search-wrapper">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="search-input" class="search-input" placeholder="Sorte suchen…" autocomplete="off">
+      </div>
+      <select id="filter-type" class="filter-select">
+        <option value="">Alle Typen</option>
+        <option value="Indica">Indica</option>
+        <option value="Sativa">Sativa</option>
+        <option value="Hybrid">Hybrid</option>
+      </select>
+      <select id="filter-sort" class="filter-select">
+        <option value="newest">Neueste</option>
+        <option value="rating">Beste Bewertung</option>
+        <option value="name">Alphabetisch</option>
+        <option value="thc">Höchster THC</option>
+      </select>
+    </section>
+
+    <!-- Strain Grid -->
+    <section id="strain-grid" class="strain-grid">
+      <div class="loading"><div class="spinner"></div></div>
+    </section>
+
+  </main>
+
+  <!-- ===== PASSWORD MODAL ===== -->
+  <div id="password-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">🔒 Admin-Zugang</h2>
+        <button class="modal-close" onclick="UI.hideModal('password-modal')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="password-prompt">
+          <p>Gib das Admin-Passwort ein, um Sorten hinzuzufügen, zu bearbeiten oder zu löschen.</p>
+          <input type="password" id="admin-password" class="form-input" placeholder="Passwort…"
+                 onkeydown="if(event.key==='Enter')App.submitPassword()">
+          <p class="password-error">Falsches Passwort</p>
+          <button class="btn btn-primary" onclick="App.submitPassword()" style="margin-top:8px">Bestätigen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== STRAIN FORM MODAL ===== -->
+  <div id="form-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="form-title">Neue Sorte hinzufügen</h2>
+        <button class="modal-close" onclick="App.cancelForm()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="strain-form" onsubmit="event.preventDefault(); App.saveStrain();">
+
+          <div class="form-group">
+            <label class="form-label" for="strain-name">Name *</label>
+            <input type="text" id="strain-name" class="form-input" placeholder="z.B. Wedding Cake" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="strain-type">Typ *</label>
+            <select id="strain-type" class="form-select" required>
+              <option value="">Typ wählen…</option>
+              <option value="Indica">Indica</option>
+              <option value="Sativa">Sativa</option>
+              <option value="Hybrid">Hybrid</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="strain-thc">THC %</label>
+              <input type="number" id="strain-thc" class="form-input" placeholder="z.B. 22.5" step="0.1" min="0" max="100">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="strain-cbd">CBD %</label>
+              <input type="number" id="strain-cbd" class="form-input" placeholder="z.B. 0.5" step="0.1" min="0" max="100">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Bewertung</label>
+            <div id="rating-input" class="star-rating-input"></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="strain-effects">Wirkung</label>
+            <textarea id="strain-effects" class="form-textarea" placeholder="z.B. Entspannend, schmerzlindernd, guter Schlaf…"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="strain-taste">Geschmack</label>
+            <input type="text" id="strain-taste" class="form-input" placeholder="z.B. Süß, erdig, zitrusartig…">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="strain-notes">Notizen</label>
+            <textarea id="strain-notes" class="form-textarea" placeholder="Persönliche Notizen…"></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="App.cancelForm()">Abbrechen</button>
+            <button type="submit" class="btn btn-primary">Speichern</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DETAIL MODAL ===== -->
+  <div id="detail-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Sortendetails</h2>
+        <button class="modal-close" onclick="UI.hideModal('detail-modal')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="detail-content">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOAST CONTAINER ===== -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ===== Scripts ===== -->
+  <script src="js/supabase-config.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
