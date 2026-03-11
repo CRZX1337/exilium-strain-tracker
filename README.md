@@ -2,7 +2,7 @@
 
 Ein persönlicher Tracker für medizinische Cannabis-Sorten. Verwalte, bewerte und durchsuche deine Sorten — gehostet auf GitHub Pages mit Supabase als Backend.
 
-**[Live →](https://CryZuX.github.io/exilium-weed-site/)**
+**[Live →](https://crzx1337.github.io/exilium-strain-tracker/)**
 
 ## Features
 
