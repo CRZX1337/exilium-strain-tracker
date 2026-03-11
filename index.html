@@ -232,6 +232,19 @@
   <!-- ===== TOAST CONTAINER ===== -->
   <div id="toast-container" class="toast-container"></div>
 
+  <!-- ===== LIGHTBOX MODAL ===== -->
+  <div id="lightbox-modal" class="modal-overlay" onclick="UI.hideModal('lightbox-modal')">
+    <div class="lightbox-content">
+      <img id="lightbox-image" src="" alt="Zoom" onclick="event.stopPropagation()">
+      <button class="modal-close lightbox-close" onclick="UI.hideModal('lightbox-modal')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
   <!-- ===== Scripts ===== -->
   <script src="js/supabase-config.js"></script>
   <script src="js/ui.js"></script>

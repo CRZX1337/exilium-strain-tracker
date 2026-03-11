@@ -122,6 +122,12 @@ const UI = {
     document.body.style.overflow = '';
   },
 
+  // --- Image Lightbox ---
+  openLightbox(url) {
+    document.getElementById('lightbox-image').src = url;
+    this.showModal('lightbox-modal');
+  },
+
   // --- Toast notifications ---
   showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
@@ -148,8 +154,8 @@ const UI = {
     content.innerHTML = `
       ${strain.image_url ? `
         <div class="detail-image-container" style="margin: -24px -28px 24px -28px; height: 260px; overflow: hidden; border-radius: var(--radius-xl) var(--radius-xl) 0 0; position: relative;">
-          <img src="${strain.image_url}" alt="${this.escapeHtml(strain.name)}" style="width: 100%; height: 100%; object-fit: cover;">
-          <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, var(--bg-secondary) 100%);"></div>
+          <img src="${strain.image_url}" alt="${this.escapeHtml(strain.name)}" class="detail-image-zoom" onclick="UI.openLightbox('${strain.image_url}')" style="width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; transition: transform var(--transition-slow);">
+          <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, var(--bg-secondary) 100%); pointer-events: none;"></div>
         </div>
       ` : ''}
       <div class="strain-card-header" style="margin-bottom:16px">
