@@ -17,6 +17,9 @@ const App = {
         await this.loadStrains();
         this.bindEvents();
 
+        // Disable right-click context menu globally
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
         // Enforce a minimum 2s display time for the startup loader to look premium
         const loadEnd = Date.now();
         const loadTime = loadEnd - loadStart;

@@ -79,6 +79,13 @@ body {
     line-height: 1.6;
     min-height: 100vh;
     overflow-x: hidden;
+    /* Disable text selection */
+    -webkit-user-select: none;
+    /* Safari */
+    -ms-user-select: none;
+    /* IE 10 and IE 11 */
+    user-select: none;
+    /* Standard syntax */
 }
 
 /* Ambient background glow */
@@ -1356,24 +1363,39 @@ body::before {
 .loader-text {
     font-size: 2.5rem;
     font-weight: 700;
-    color: var(--text-primary);
     letter-spacing: 6px;
     text-transform: uppercase;
-    animation: pulseText 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
     z-index: 2;
-    /* Ensures text is over logo if they overlap */
+    position: relative;
+    display: inline-block;
 }
 
-@keyframes pulseText {
+.loader-text,
+.loader-text span {
+    /* Apply sweep to entire container text and children */
+    background: linear-gradient(90deg,
+            var(--text-primary) 0%,
+            var(--text-primary) 30%,
+            var(--accent) 40%,
+            var(--accent-glow) 48%,
+            #ffffff 50%,
+            var(--accent-glow) 52%,
+            var(--accent) 60%,
+            var(--text-primary) 70%,
+            var(--text-primary) 100%);
+    background-size: 300% auto;
+    color: transparent !important;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: lightSweep 4.5s linear infinite;
+}
 
-    0%,
-    100% {
-        opacity: 0.4;
-        text-shadow: 0 0 10px transparent;
+@keyframes lightSweep {
+    0% {
+        background-position: 250% center;
     }
 
-    50% {
-        opacity: 1;
-        text-shadow: 0 0 20px var(--accent-glow);
+    100% {
+        background-position: -150% center;
     }
 }
