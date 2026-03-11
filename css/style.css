@@ -1282,3 +1282,98 @@ body::before {
         padding: 18px;
     }
 }
+
+/* --- Startup Loader (Leaf Animation) --- */
+.startup-loader {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-primary);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s;
+    backdrop-filter: blur(32px) saturate(150%);
+    -webkit-backdrop-filter: blur(32px) saturate(150%);
+}
+
+.startup-loader.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.loader-icon-container {
+    width: 250px;
+    height: 250px;
+    margin-bottom: -15px;
+    /* Pulls text closer to logo */
+    animation: floatIcon 3s ease-in-out infinite, glowPulseImage 2.5s ease-in-out infinite alternate;
+}
+
+.loader-leaf {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.4));
+}
+
+@keyframes glowPulseImage {
+    0% {
+        filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.2));
+        transform: scale(0.98);
+    }
+
+    100% {
+        filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.6));
+        transform: scale(1.02);
+    }
+}
+
+@keyframes glowPulse {
+    0% {
+        filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.3));
+        transform: scale(0.95);
+    }
+
+    100% {
+        filter: drop-shadow(0 0 25px rgba(16, 185, 129, 0.8));
+        transform: scale(1.05);
+    }
+}
+
+@keyframes spinSlow {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loader-text {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    animation: pulseText 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    z-index: 2;
+    /* Ensures text is over logo if they overlap */
+}
+
+@keyframes pulseText {
+
+    0%,
+    100% {
+        opacity: 0.4;
+        text-shadow: 0 0 10px transparent;
+    }
+
+    50% {
+        opacity: 1;
+        text-shadow: 0 0 20px var(--accent-glow);
+    }
+}

@@ -11,9 +11,26 @@ const App = {
 
     // --- Initialize ---
     async init() {
+        const loadStart = Date.now();
+
         UI.showLoading();
         await this.loadStrains();
         this.bindEvents();
+
+        // Enforce a minimum 2s display time for the startup loader to look premium
+        const loadEnd = Date.now();
+        const loadTime = loadEnd - loadStart;
+        const minLoaderTime = 2000;
+        const remainingTime = Math.max(0, minLoaderTime - loadTime);
+
+        setTimeout(() => {
+            const loader = document.getElementById('startup-loader');
+            if (loader) {
+                loader.classList.add('hidden');
+                // Remove from DOM after transition
+                setTimeout(() => loader.remove(), 800);
+            }
+        }, remainingTime);
     },
 
     // --- Load strains from Supabase ---
