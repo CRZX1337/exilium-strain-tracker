@@ -146,8 +146,12 @@ const App = {
         const passwordInput = document.getElementById('admin-password');
         const password = passwordInput.value;
         const errorEl = document.querySelector('.password-error');
+        const modal = document.querySelector('#password-modal .modal');
 
         if (!password) {
+            modal.classList.remove('shake');
+            void modal.offsetWidth; // Trigger reflow to restart animation
+            modal.classList.add('shake');
             errorEl.textContent = 'Bitte Passwort eingeben';
             errorEl.classList.add('show');
             return;
@@ -156,17 +160,28 @@ const App = {
         const valid = await this.verifyPassword(password);
         if (valid) {
             this.isAdmin = true;
-            UI.hideModal('password-modal');
-            UI.showToast('Admin-Zugang aktiviert');
+            errorEl.classList.remove('show');
 
-            // Update button
-            const addBtn = document.getElementById('add-strain-btn');
-            addBtn.classList.remove('btn-secondary');
-            addBtn.classList.add('btn-primary');
+            // Success animation
+            modal.classList.add('success-pulse');
+            setTimeout(() => {
+                UI.hideModal('password-modal');
+                modal.classList.remove('success-pulse');
+                UI.showToast('Admin-Zugang aktiviert');
 
-            // Now open the form
-            this.openAddStrain();
+                // Update button
+                const addBtn = document.getElementById('add-strain-btn');
+                addBtn.classList.remove('btn-secondary');
+                addBtn.classList.add('btn-primary');
+
+                // Now open the form
+                this.openAddStrain();
+            }, 400); // Wait for pulse animation
         } else {
+            // Error animation
+            modal.classList.remove('shake');
+            void modal.offsetWidth; // Trigger reflow to restart animation
+            modal.classList.add('shake');
             errorEl.textContent = 'Falsches Passwort';
             errorEl.classList.add('show');
             passwordInput.value = '';
@@ -235,19 +250,43 @@ const App = {
 
                 if (error) throw error;
                 UI.showToast('Sorte aktualisiert');
+
+                // Update local state to avoid full reload
+                const index = this.strains.findIndex(s => s.id === this.editingId);
+                if (index !== -1) {
+                    this.strains[index] = { ...this.strains[index], ...strainData };
+                    this.strains[index]._isEdited = true; // Set highlight flag for UI
+                }
             } else {
                 // Insert
-                const { error } = await db
+                const { data, error } = await db
                     .from('strains')
-                    .insert([strainData]);
+                    .insert([strainData])
+                    .select(); // Need to select to get the ID
 
                 if (error) throw error;
                 UI.showToast('Sorte hinzugefügt');
+
+                if (data && data.length > 0) {
+                    const newStrain = data[0];
+                    newStrain._isNew = true; // Set highlight flag for UI
+                    this.strains.unshift(newStrain);
+                }
             }
 
             UI.hideModal('form-modal');
             this.resetForm();
-            await this.loadStrains();
+
+            // Re-render and clear flags
+            this.renderFilteredStrains();
+            this.updateStats();
+
+            setTimeout(() => {
+                this.strains.forEach(s => {
+                    delete s._isNew;
+                    delete s._isEdited;
+                });
+            }, 2000);
         } catch (err) {
             console.error('Error saving strain:', err);
             UI.showToast('Fehler beim Speichern: ' + err.message, 'error');
@@ -300,7 +339,18 @@ const App = {
 
         if (!confirm(`"${strain.name}" wirklich löschen?`)) return;
 
+        // Animate removal first
+        const cardElements = document.querySelectorAll('.strain-card');
+        let targetCard = Array.from(cardElements).find(card => card.getAttribute('onclick') === `App.showDetail('${id}')`);
+
+        if (targetCard) {
+            targetCard.classList.add('removing');
+        }
+
         try {
+            // Wait for slide out animation
+            await new Promise(resolve => setTimeout(resolve, 350));
+
             const { error } = await db
                 .from('strains')
                 .delete()
@@ -308,10 +358,16 @@ const App = {
 
             if (error) throw error;
             UI.showToast('Sorte gelöscht');
-            await this.loadStrains();
+
+            // Remove from local state
+            this.strains = this.strains.filter(s => s.id !== id);
+            this.renderFilteredStrains();
+            this.updateStats();
         } catch (err) {
             console.error('Error deleting strain:', err);
             UI.showToast('Fehler beim Löschen: ' + err.message, 'error');
+            // Revert animation if error
+            if (targetCard) targetCard.classList.remove('removing');
         }
     },
 
