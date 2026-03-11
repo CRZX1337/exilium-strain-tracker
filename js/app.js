@@ -15,6 +15,7 @@ const App = {
 
         UI.showLoading();
         await this.loadStrains();
+        UI.initCustomSelects();
         this.bindEvents();
 
         // Disable right-click context menu globally
@@ -344,6 +345,23 @@ const App = {
         document.getElementById('strain-taste').value = strain.taste || '';
         document.getElementById('strain-notes').value = strain.notes || '';
         document.getElementById('strain-image').value = ''; // Reset file input
+        
+        // Sync custom dropdown UI for Type
+        const typeSelect = document.getElementById('strain-type');
+        const typeWrapper = typeSelect.closest('.custom-select-wrapper');
+        if (typeWrapper) {
+            const triggerSpan = typeWrapper.querySelector('.custom-select-trigger span');
+            if (triggerSpan) {
+                // Find visible text for the selected value
+                const optionList = Array.from(typeSelect.options);
+                const selectedOpt = optionList.find(o => o.value === strain.type) || optionList[0];
+                triggerSpan.textContent = selectedOpt.text;
+            }
+            typeWrapper.querySelectorAll('.custom-select-option').forEach(opt => {
+                opt.classList.toggle('selected', opt.dataset.value === strain.type);
+            });
+        }
+
         UI.renderStarInput('rating-input', this.formRating);
 
         UI.showModal('form-modal');
@@ -406,7 +424,23 @@ const App = {
         this.editingId = null;
         this.formRating = 0;
         const form = document.getElementById('strain-form');
-        if (form) form.reset();
+        if (form) {
+            form.reset();
+            
+            // Sync custom dropdowns back to their default empty states
+            form.querySelectorAll('select').forEach(select => {
+                const wrapper = select.closest('.custom-select-wrapper');
+                if (wrapper) {
+                    const selectedItem = select.options[select.selectedIndex];
+                    const triggerSpan = wrapper.querySelector('.custom-select-trigger span');
+                    if (triggerSpan) triggerSpan.textContent = selectedItem.text;
+                    
+                    wrapper.querySelectorAll('.custom-select-option').forEach(opt => {
+                        opt.classList.toggle('selected', opt.dataset.value === select.value);
+                    });
+                }
+            });
+        }
     },
 
     // --- Cancel form ---

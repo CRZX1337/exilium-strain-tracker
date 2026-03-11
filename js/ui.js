@@ -226,6 +226,84 @@ const UI = {
     `;
   },
 
+  // --- Custom Select Dropdowns ---
+  initCustomSelects() {
+    document.querySelectorAll('select.form-select, select.filter-select').forEach(select => {
+      // Avoid wrapping twice
+      if (select.closest('.custom-select-wrapper')) return;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'custom-select-wrapper';
+      select.parentNode.insertBefore(wrapper, select);
+      
+      // Move original select inside wrapper and hide it
+      select.style.display = 'none';
+      wrapper.appendChild(select);
+
+      const trigger = document.createElement('div');
+      trigger.className = 'custom-select-trigger';
+      
+      const selectedItem = select.options[select.selectedIndex];
+      const triggerText = document.createElement('span');
+      triggerText.textContent = selectedItem ? selectedItem.text : select.options[0].text;
+      
+      const icon = document.createElement('div');
+      icon.innerHTML = `<svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+      
+      trigger.appendChild(triggerText);
+      trigger.appendChild(icon);
+      
+      const optionsContainer = document.createElement('div');
+      optionsContainer.className = 'custom-select-options';
+
+      Array.from(select.options).forEach(option => {
+        // Skip entirely placeholder options if we are in the filter context, 
+        // to match native behavior (mostly they just show "Alle Typen").
+        const customOption = document.createElement('div');
+        customOption.className = 'custom-select-option';
+        if (option.selected) customOption.classList.add('selected');
+        customOption.textContent = option.text;
+        customOption.dataset.value = option.value;
+        
+        customOption.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // Update native select
+          select.value = customOption.dataset.value;
+          // Dispatch change event for filtering logic
+          select.dispatchEvent(new Event('change'));
+          
+          // Update custom UI
+          triggerText.textContent = customOption.textContent;
+          optionsContainer.querySelectorAll('.custom-select-option').forEach(opt => opt.classList.remove('selected'));
+          customOption.classList.add('selected');
+          
+          wrapper.classList.remove('open');
+        });
+        
+        optionsContainer.appendChild(customOption);
+      });
+
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Close all other open selects
+        document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+          if (w !== wrapper) w.classList.remove('open');
+        });
+        wrapper.classList.toggle('open');
+      });
+
+      wrapper.appendChild(trigger);
+      wrapper.appendChild(optionsContainer);
+    });
+
+    // Close options when clicking outside
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.custom-select-wrapper').forEach(wrapper => {
+        wrapper.classList.remove('open');
+      });
+    });
+  },
+
   // --- Helpers ---
   escapeHtml(text) {
     if (!text) return '';
