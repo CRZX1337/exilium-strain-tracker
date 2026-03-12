@@ -195,8 +195,14 @@ const App = {
                 addBtn.classList.remove('btn-secondary');
                 addBtn.classList.add('btn-primary');
 
-                // Now open the form
-                this.openAddStrain();
+                // Now open the form or edit the pending strain
+                if (this._pendingEdit) {
+                    const pendingId = this._pendingEdit;
+                    this._pendingEdit = null;
+                    this.editStrain(pendingId);
+                } else {
+                    this.openAddStrain();
+                }
             }, 400); // Wait for pulse animation
         } else {
             // Error animation
