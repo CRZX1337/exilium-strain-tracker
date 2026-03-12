@@ -460,14 +460,30 @@ const App = {
     // --- Image Preview Logic ---
     handleImagePreview(input) {
         const file = input.files[0];
+        const uploadBtn = document.getElementById('upload-btn');
+        
         if (!file) {
             this.removeImagePreview();
+            if (uploadBtn) {
+                uploadBtn.classList.remove('uploading');
+            }
             return;
+        }
+
+        // Add uploading animation
+        if (uploadBtn) {
+            uploadBtn.classList.add('uploading');
         }
 
         const reader = new FileReader();
         reader.onload = (e) => {
             this.updateImagePreviewUI(e.target.result, file.name);
+            // Remove animation after preview is shown
+            if (uploadBtn) {
+                setTimeout(() => {
+                    uploadBtn.classList.remove('uploading');
+                }, 800);
+            }
         };
         reader.readAsDataURL(file);
     },
@@ -494,6 +510,12 @@ const App = {
         }
         const fileInput = document.getElementById('strain-image');
         if (fileInput) fileInput.value = '';
+        
+        // Remove uploading animation
+        const uploadBtn = document.getElementById('upload-btn');
+        if (uploadBtn) {
+            uploadBtn.classList.remove('uploading');
+        }
     },
 
     // --- Helpers ---
