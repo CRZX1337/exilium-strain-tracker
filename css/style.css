@@ -184,7 +184,7 @@ body::before {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 20px;
+    padding: 12px 24px;
     border: none;
     border-radius: var(--radius-md);
     font-family: inherit;
@@ -196,6 +196,16 @@ body::before {
     white-space: nowrap;
     position: relative;
     overflow: hidden;
+    min-height: 48px;
+    justify-content: center;
+}
+
+@media (max-width: 640px) {
+    .btn {
+        min-height: 52px;
+        padding: 14px 20px;
+        font-size: 0.9rem;
+    }
 }
 
 /* Ripple effect for all buttons */
@@ -2049,3 +2059,32 @@ textarea,
         display: none;
     }
 }
+
+/* --- Mobile Touch Improvements --- */
+@media (max-width: 640px) {
+    /* Larger touch targets for all interactive elements */
+    .btn,
+    .search-input,
+    .filter-select,
+    .form-input,
+    .form-textarea,
+    .form-select {
+        min-height: 52px;
+    }
+
+    .search-input {
+        padding: 14px 16px 14px 44px;
+    }
+
+    .filter-select {
+        padding: 14px 40px 14px 16px;
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-select {
+        padding: 16px 16px;
+        font-size: 0.95rem;
+    }
+
+    .form-textarea {\n        min-height: 120px;\n    }\n\n    .form-row {\n        grid-template-columns: 1fr;\n        gap: 20px;\n    }\n\n    .form-actions {\n        flex-direction: column-reverse;\n    }\n\n    .form-actions .btn {\n        width: 100%;\n    }\n\n    /* Stats bar optimization */\n    .stats-bar {\n        gap: 10px;\n        padding: 16px 0;\n    }\n\n    .stat-card {\n        min-width: 130px;\n        padding: 14px 16px;\n    }\n\n    .stat-value {\n        font-size: 1.35rem;\n    }\n\n    .stat-label {\n        font-size: 0.7rem;\n        margin-top: 6px;\n    }\n\n    /* Controls bar full-width on small screens */\n    .controls-bar {\n        flex-direction: column;\n        gap: 12px;\n    }\n\n    .filter-select {\n        flex: 1;\n    }\n\n    /* Strain card improvements */\n    .strain-card {\n        padding: 14px;\n    }\n\n    .strain-card-image {\n        height: 140px;\n        margin: -14px -14px 14px -14px;\n    }\n\n    .strain-card-title {\n        font-size: 1.1rem;\n    }\n\n    .strain-meta {\n        gap: 12px;\n    }\n\n    .strain-meta-item {\n        font-size: 0.8rem;\n    }\n\n    /* Modal improvements */\n    .modal {\n        border-radius: var(--radius-lg);\n    }\n\n    .modal-header {\n        padding: 12px 16px;\n        height: 52px;\n    }\n\n    .modal-body {\n        padding: 64px 16px 24px;\n    }\n}
