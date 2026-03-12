@@ -16,6 +16,7 @@ const App = {
         UI.showLoading();
         await this.loadStrains();
         UI.initCustomSelects();
+        UI.initCustomCursor();
         this.bindEvents();
 
         // Disable right-click context menu globally

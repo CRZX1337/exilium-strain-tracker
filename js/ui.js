@@ -250,6 +250,125 @@ const UI = {
     `;
   },
 
+  // --- Initialize Custom Cursor ---
+  initCustomCursor() {
+    const cursorDot = document.getElementById('cursor-dot');
+    const cursorHalo = document.getElementById('cursor-halo');
+
+    // Don't initialize on touch devices
+    if (window.matchMedia('(hover: none)').matches) return;
+
+    // Track mouse movement
+    document.addEventListener('mousemove', (e) => {
+      cursorDot.style.left = e.clientX + 'px';
+      cursorDot.style.top = e.clientY + 'px';
+      cursorHalo.style.left = e.clientX + 'px';
+      cursorHalo.style.top = e.clientY + 'px';
+    });
+
+    // Add active state to interactive elements
+    const interactiveElements = document.querySelectorAll('button, a, [onclick], input, select, textarea, .custom-select-wrapper, .custom-select-trigger, .custom-select-option');
+    
+    interactiveElements.forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cursorHalo.classList.add('active');
+      });
+      
+      el.addEventListener('mouseleave', () => {
+        cursorHalo.classList.remove('active');
+      });
+
+      el.addEventListener('click', () => {
+        cursorHalo.classList.add('pulse');
+        setTimeout(() => {
+          cursorHalo.classList.remove('pulse');
+        }, 400);
+      });
+    });
+
+    // Ensure custom cursor shows on input/select focus
+    document.addEventListener('focusin', (e) => {
+      if (e.target.matches('input, select, textarea, .custom-select-trigger')) {
+        cursorHalo.classList.add('active');
+        
+        // Apply text-input styling for text inputs
+        if (e.target.matches('input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea')) {
+          cursorDot.classList.add('text-input');
+          cursorHalo.classList.remove('dropdown');
+          cursorHalo.classList.add('text-input');
+        }
+        // Apply dropdown styling for select/dropdown
+        else if (e.target.matches('select, .custom-select-trigger')) {
+          cursorDot.classList.remove('text-input');
+          cursorHalo.classList.remove('text-input');
+          cursorHalo.classList.add('dropdown');
+        }
+      }
+    });
+
+    document.addEventListener('focusout', (e) => {
+      if (e.target.matches('input, select, textarea, .custom-select-trigger')) {
+        cursorHalo.classList.remove('active');
+        cursorDot.classList.remove('text-input');
+        cursorHalo.classList.remove('text-input', 'dropdown');
+      }
+    });
+
+    // Handle dynamic custom select options
+    document.addEventListener('mouseenter', (e) => {
+      if (e.target.matches('.custom-select-option')) {
+        cursorHalo.classList.add('active', 'dropdown');
+        cursorDot.classList.remove('text-input');
+        cursorHalo.classList.remove('text-input');
+      }
+    }, true);
+
+    document.addEventListener('mouseleave', (e) => {
+      if (e.target.matches('.custom-select-option')) {
+        cursorHalo.classList.remove('active', 'dropdown');
+      }
+    }, true);
+
+    // Hide cursor when leaving window
+    document.addEventListener('mouseleave', () => {
+      cursorDot.style.opacity = '0';
+      cursorHalo.style.opacity = '0';
+    });
+
+    document.addEventListener('mouseenter', () => {
+      cursorDot.style.opacity = '1';
+      cursorHalo.style.opacity = '0.6';
+    });
+
+    // Initialize mobile touch ripples
+    this.initTouchRipples();
+  },
+
+  // --- Initialize Mobile Touch Ripples ---
+  initTouchRipples() {
+    const interactiveElements = document.querySelectorAll('button, a, [onclick]');
+    
+    interactiveElements.forEach(el => {
+      el.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        const rect = el.getBoundingClientRect();
+        
+        // Create ripple element
+        const ripple = document.createElement('div');
+        ripple.className = 'touch-ripple';
+        ripple.style.left = (touch.clientX - rect.left) + 'px';
+        ripple.style.top = (touch.clientY - rect.top) + 'px';
+        
+        el.appendChild(ripple);
+        
+        // Remove ripple after animation
+        setTimeout(() => {
+          ripple.remove();
+        }, 600);
+      });
+    });
+  },
+
   // --- Custom Select Dropdowns ---
   initCustomSelects() {
     document.querySelectorAll('select.form-select, select.filter-select').forEach(select => {

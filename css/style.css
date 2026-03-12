@@ -1329,7 +1329,7 @@ body::before {
     padding: 12px 16px;
     color: var(--text-primary);
     font-size: 0.95rem;
-    cursor: pointer;
+    cursor: none;
     transition: background var(--transition-fast), color var(--transition-fast);
 }
 
@@ -1909,5 +1909,132 @@ input[type=number] {
 
     .form-row > .form-group {
         flex: 1 1 100% !important;
+    }
+}
+
+/* --- Custom Cursor --- */
+body {
+    cursor: none;
+}
+
+/* Hide default cursor on all interactive elements */
+button,
+a,
+input,
+select,
+textarea,
+[onclick],
+.custom-select-wrapper,
+.custom-select-trigger,
+.custom-select-option {
+    cursor: none;
+}
+
+.cursor-dot {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.8), 0 0 16px rgba(16, 185, 129, 0.4);
+    transition: background 0.2s ease, box-shadow 0.2s ease, width 0.2s ease, height 0.2s ease;
+}
+
+/* Text input state - vertical line cursor */
+.cursor-dot.text-input {
+    width: 2px;
+    height: 16px;
+    background: var(--accent);
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.8);
+}
+
+.cursor-halo {
+    position: fixed;
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: width 0.2s ease, height 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, border-style 0.2s ease, opacity 0.2s ease;
+    opacity: 0.6;
+}
+
+.cursor-halo.active {
+    width: 48px;
+    height: 48px;
+    border-color: var(--accent-hover);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5), inset 0 0 20px rgba(16, 185, 129, 0.2);
+    opacity: 0.8;
+}
+
+.cursor-halo.text-input {
+    width: 24px;
+    height: 24px;
+    border-color: var(--accent);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+    opacity: 0.7;
+    border-style: solid;
+}
+
+.cursor-halo.dropdown {
+    border-style: dashed;
+    opacity: 0.5;
+}
+
+.cursor-halo.pulse {
+    animation: cursorPulse 0.4s ease-out;
+}
+
+@keyframes cursorPulse {
+    0% {
+        width: 48px;
+        height: 48px;
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.6), inset 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+    100% {
+        width: 64px;
+        height: 64px;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.2), inset 0 0 10px rgba(16, 185, 129, 0.1);
+        opacity: 0;
+    }
+}
+
+/* --- Touch Ripple Effect --- */
+.touch-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.8) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: touchRipple 0.6s ease-out;
+}
+
+@keyframes touchRipple {
+    0% {
+        width: 20px;
+        height: 20px;
+        opacity: 1;
+    }
+    100% {
+        width: 100px;
+        height: 100px;
+        opacity: 0;
+    }
+}
+
+/* Disable custom cursor on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    body {
+        cursor: auto;
+    }
+
+    .cursor-dot,
+    .cursor-halo {
+        display: none;
     }
 }
