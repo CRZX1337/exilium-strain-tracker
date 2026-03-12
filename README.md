@@ -9,9 +9,7 @@ Ein persönlicher Tracker für medizinische Cannabis-Sorten. Verwalte, bewerte u
 - 📋 Sortenliste mit THC/CBD, Bewertung & Wirkung
 - 🔍 Suche & Filter (Name, Typ, Bewertung)
 - ⭐ 5-Sterne Bewertungssystem
-- 🔒 Passwort-geschützter Admin-Zugang
 - 📊 Live-Statistiken
-- 🌙 Premium Dark Theme
 
 ## Lizenz
 
