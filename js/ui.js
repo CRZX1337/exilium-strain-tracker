@@ -122,7 +122,10 @@ const UI = {
   hideModal(id) {
     const overlay = document.getElementById(id);
     overlay.classList.remove('active');
-    document.body.style.overflow = '';
+    // Wait only for the modal transition to complete before unlocking scroll
+    setTimeout(() => {
+      document.body.style.overflow = '';
+    }, 500);
   },
 
   // --- Image Lightbox ---
@@ -144,11 +147,32 @@ const UI = {
     setTimeout(() => toast.remove(), 3000);
   },
 
-  // --- Show loading spinner ---
+  // --- Show loading skeleton loaders ---
   showLoading() {
-    document.getElementById('strain-grid').innerHTML = `
-      <div class="loading"><div class="spinner"></div></div>
-    `;
+    const grid = document.getElementById('strain-grid');
+    const skeletonCount = 6; // Show 6 skeleton cards
+    let skeletonHTML = '';
+    
+    for (let i = 0; i < skeletonCount; i++) {
+      skeletonHTML += `
+        <div class="skeleton-card" style="animation-delay: ${i * 0.05}s">
+          <div class="skeleton-card-image"></div>
+          <div class="skeleton-card-header">
+            <div class="skeleton-card-title" style="flex: 1;"></div>
+            <div class="skeleton-card-badge"></div>
+          </div>
+          <div class="skeleton-card-meta">
+            <div class="skeleton-card-meta-item"></div>
+            <div class="skeleton-card-meta-item"></div>
+            <div class="skeleton-card-meta-item"></div>
+          </div>
+          <div class="skeleton-card-text" style="height: 40px;"></div>
+          <div class="skeleton-card-text" style="width: 60%;"></div>
+        </div>
+      `;
+    }
+    
+    grid.innerHTML = skeletonHTML;
   },
 
   // --- Detail modal content ---

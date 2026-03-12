@@ -51,9 +51,9 @@
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
     --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.1);
 
-    --transition-fast: 150ms ease;
-    --transition-base: 250ms ease;
-    --transition-slow: 400ms cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-fast: 200ms ease;
+    --transition-base: 300ms ease;
+    --transition-slow: 500ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* --- Reset & Base --- */
@@ -194,6 +194,39 @@ body::before {
     transition: all var(--transition-base);
     text-decoration: none;
     white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Ripple effect for all buttons */
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.btn:active::before {
+    animation: ripple 0.4s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        width: 0;
+        height: 0;
+        opacity: 1;
+    }
+    100% {
+        width: 300px;
+        height: 300px;
+        opacity: 0;
+    }
 }
 
 .btn-primary {
@@ -204,8 +237,12 @@ body::before {
 
 .btn-primary:hover {
     background: linear-gradient(135deg, var(--accent-hover), var(--accent));
-    transform: translateY(-1px);
-    box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0) scale(0.98);
 }
 
 .btn-full {
@@ -222,6 +259,11 @@ body::before {
 .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: var(--border-input);
+    transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+    transform: translateY(0) scale(0.98);
 }
 
 /* Upload button neon effect */
@@ -298,6 +340,11 @@ body::before {
 .btn-danger:hover {
     background: rgba(239, 68, 68, 0.2);
     border-color: rgba(239, 68, 68, 0.3);
+    transform: translateY(-1px);
+}
+
+.btn-danger:active {
+    transform: translateY(0) scale(0.98);
 }
 
 .btn-ghost {
@@ -309,11 +356,24 @@ body::before {
 .btn-ghost:hover {
     color: var(--text-primary);
     background: var(--bg-input);
+    transform: translateY(-1px);
+}
+
+.btn-ghost:active {
+    transform: translateY(0) scale(0.98);
 }
 
 .btn-icon {
     padding: 10px;
     aspect-ratio: 1;
+}
+
+.btn-icon:hover {
+    transform: scale(1.1);
+}
+
+.btn-icon:active {
+    transform: scale(0.95);
 }
 
 /* --- Stats Bar --- */
@@ -460,6 +520,8 @@ body::before {
     position: relative;
     overflow: hidden;
     animation: fadeInUp 0.4s ease backwards;
+    --mouse-x: 50%;
+    --mouse-y: 50%;
 }
 
 .strain-card::before {
@@ -475,15 +537,37 @@ body::before {
     z-index: 2;
 }
 
+.strain-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at var(--mouse-x) var(--mouse-y), rgba(16, 185, 129, 0.25) 0%, rgba(16, 185, 129, 0.1) 30%, transparent 70%);
+    opacity: 0;
+    transition: opacity var(--transition-base), background var(--transition-fast);
+    pointer-events: none;
+    z-index: 1;
+}
+
 .strain-card:hover {
     border-color: var(--border-input);
     background: var(--bg-card-hover);
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-8px);
+    box-shadow: 0 12px 48px rgba(16, 185, 129, 0.2), 0 0 50px rgba(16, 185, 129, 0.12);
 }
 
 .strain-card:hover::before {
     opacity: 1;
+}
+
+.strain-card:hover::after {
+    opacity: 1;
+}
+
+.strain-card:active {
+    transform: translateY(-4px);
 }
 
 .strain-image-container {
@@ -511,7 +595,7 @@ body::before {
 }
 
 .strain-card:hover .strain-image {
-    transform: scale(1.05);
+    transform: scale(1.08) rotate(0.5deg);
 }
 
 .strain-card-header {
@@ -707,7 +791,7 @@ body::before {
     padding: 24px;
     opacity: 0;
     visibility: hidden;
-    transition: opacity var(--transition-base), visibility var(--transition-base);
+    transition: opacity var(--transition-slow), visibility var(--transition-slow), background-color var(--transition-base);
     backdrop-filter: blur(24px) saturate(120%);
     -webkit-backdrop-filter: blur(24px) saturate(120%);
 }
@@ -727,7 +811,7 @@ body::before {
     max-width: 560px;
     max-height: 90vh;
     overflow-y: auto;
-    transform: scale(0.95) translateY(10px);
+    transform: scale(0.95) translateY(10px) rotateX(-5deg);
     transition: transform var(--transition-slow), box-shadow var(--transition-base), border-color var(--transition-base);
     box-shadow: var(--shadow-lg), 0 0 40px rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(32px);
@@ -747,7 +831,7 @@ body::before {
 }
 
 .modal-overlay.active .modal {
-    transform: scale(1) translateY(0);
+    transform: scale(1) translateY(0) rotateX(0deg);
 }
 
 .modal-header {
@@ -1646,5 +1730,184 @@ input[type=number] {
         font-size: 1.5rem;
         letter-spacing: 3px;
         white-space: nowrap;
+    }
+}
+
+/* --- Skeleton Loaders --- */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--bg-input) 25%,
+        rgba(255, 255, 255, 0.1) 50%,
+        var(--bg-input) 75%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+    border-radius: var(--radius-md);
+}
+
+.skeleton-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    animation: fadeInUp 0.4s ease backwards;
+}
+
+.skeleton-card-image {
+    width: 100%;
+    height: 180px;
+    margin: -24px -24px 20px -24px;
+    border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
+    display: flex;
+}
+
+.skeleton-card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.skeleton-card-title {
+    flex: 1;
+    height: 24px;
+    background: linear-gradient(
+        90deg,
+        var(--bg-input) 25%,
+        rgba(255, 255, 255, 0.1) 50%,
+        var(--bg-input) 75%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+    border-radius: 6px;
+}
+
+.skeleton-card-badge {
+    width: 70px;
+    height: 24px;
+    background: linear-gradient(
+        90deg,
+        var(--bg-input) 25%,
+        rgba(255, 255, 255, 0.1) 50%,
+        var(--bg-input) 75%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+    border-radius: 6px;
+}
+
+.skeleton-card-meta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.skeleton-card-meta-item {
+    height: 18px;
+    width: 80px;
+    background: linear-gradient(
+        90deg,
+        var(--bg-input) 25%,
+        rgba(255, 255, 255, 0.1) 50%,
+        var(--bg-input) 75%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-card-text {
+    height: 16px;
+    margin-bottom: 12px;
+    background: linear-gradient(
+        90deg,
+        var(--bg-input) 25%,
+        rgba(255, 255, 255, 0.1) 50%,
+        var(--bg-input) 75%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-card-text:last-child {
+    margin-bottom: 0;
+}
+
+/* --- Mobile Bottom Sheet Modals --- */
+@media (max-width: 768px) {
+    .modal-overlay {
+        align-items: flex-end;
+        padding: 0;
+        background: rgba(6, 6, 11, 0.4);
+    }
+
+    .modal {
+        width: 100%;
+        max-width: 100%;
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        max-height: 90vh;
+        transform: translateY(100%) scale(1) rotateX(0deg);
+        box-shadow: 0 -4px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-overlay.active .modal {
+        transform: translateY(0) scale(1) rotateX(0deg);
+    }
+
+    .modal-header {
+        position: sticky;
+        top: 0;
+        background: var(--bg-secondary);
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border-subtle);
+        z-index: 10;
+    }
+
+    .modal-body {
+        padding: 20px 24px 32px;
+        overflow-y: auto;
+        max-height: calc(90vh - 60px);
+    }
+
+    /* Add handle indicator for bottom sheet */
+    .modal::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        width: 40px;
+        height: 4px;
+        background: var(--border-input);
+        border-radius: 2px;
+        transform: translateX(-50%);
+    }
+}
+
+@media (max-width: 600px) {
+    .modal {
+        max-height: 95vh;
+    }
+
+    .modal-body {
+        max-height: calc(95vh - 60px);
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+
+    .form-row > .form-group {
+        flex: 1 1 100% !important;
     }
 }

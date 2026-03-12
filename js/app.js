@@ -67,6 +67,19 @@ const App = {
         document.getElementById('filter-type').addEventListener('change', () => this.applyFilters());
         document.getElementById('filter-sort').addEventListener('change', () => this.applyFilters());
 
+        // Card cursor tracking for interactive glow
+        document.addEventListener('mousemove', (e) => {
+            document.querySelectorAll('.strain-card').forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const percentX = (x / rect.width) * 100;
+                const percentY = (y / rect.height) * 100;
+                card.style.setProperty('--mouse-x', `${percentX}%`);
+                card.style.setProperty('--mouse-y', `${percentY}%`);
+            });
+        });
+
         // Close modals on overlay click
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', (e) => {
