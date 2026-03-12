@@ -346,6 +346,13 @@ const App = {
         document.getElementById('strain-notes').value = strain.notes || '';
         document.getElementById('strain-image').value = ''; // Reset file input
         
+        // Show existing image in preview if available
+        if (strain.image_url) {
+            this.updateImagePreviewUI(strain.image_url, 'Aktuelles Foto');
+        } else {
+            this.removeImagePreview();
+        }
+        
         // Sync custom dropdown UI for Type
         const typeSelect = document.getElementById('strain-type');
         const typeWrapper = typeSelect.closest('.custom-select-wrapper');
@@ -441,6 +448,54 @@ const App = {
                 }
             });
         }
+        this.removeImagePreview();
+    },
+
+    // --- Image Preview Logic ---
+    handleImagePreview(input) {
+        const file = input.files[0];
+        if (!file) {
+            this.removeImagePreview();
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.updateImagePreviewUI(e.target.result, file.name);
+        };
+        reader.readAsDataURL(file);
+    },
+
+    updateImagePreviewUI(src, name) {
+        const container = document.getElementById('image-preview-container');
+        if (!container) return;
+
+        container.innerHTML = `
+            <img src="${src}" class="preview-image" alt="Preview">
+            <div class="preview-info">
+                <span class="preview-name">${this.escapeHtml(name)}</span>
+                <button type="button" class="preview-remove" onclick="App.removeImagePreview()">Entfernen</button>
+            </div>
+        `;
+        container.classList.remove('hidden');
+    },
+
+    removeImagePreview() {
+        const container = document.getElementById('image-preview-container');
+        if (container) {
+            container.innerHTML = '';
+            container.classList.add('hidden');
+        }
+        const fileInput = document.getElementById('strain-image');
+        if (fileInput) fileInput.value = '';
+    },
+
+    // --- Helpers ---
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     },
 
     // --- Cancel form ---
