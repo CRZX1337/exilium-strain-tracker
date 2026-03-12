@@ -13,12 +13,6 @@ Ein persönlicher Tracker für medizinische Cannabis-Sorten. Verwalte, bewerte u
 - 📊 Live-Statistiken
 - 🌙 Premium Dark Theme
 
-## Tech Stack
-
-- **Frontend:** HTML / CSS / JavaScript (kein Framework)
-- **Backend:** [Supabase](https://supabase.com) (Free PostgreSQL)
-- **Hosting:** GitHub Pages
-
 ## Lizenz
 
 Privates Projekt.
