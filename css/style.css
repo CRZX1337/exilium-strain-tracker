@@ -1859,6 +1859,9 @@ input[type=number] {
         max-height: 90vh;
         transform: translateY(100%) scale(1) rotateX(0deg);
         box-shadow: 0 -4px 40px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        position: relative;
     }
 
     .modal-overlay.active .modal {
@@ -1866,18 +1869,26 @@ input[type=number] {
     }
 
     .modal-header {
-        position: sticky;
+        position: fixed;
         top: 0;
+        left: 0;
+        right: 0;
         background: var(--bg-secondary);
         padding: 16px 24px;
         border-bottom: 1px solid var(--border-subtle);
-        z-index: 10;
+        z-index: 11;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 60px;
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     }
 
     .modal-body {
-        padding: 20px 24px 32px;
+        padding: 76px 24px 32px;
         overflow-y: auto;
-        max-height: calc(90vh - 60px);
+        max-height: calc(90vh - 16px);
+        flex: 1;
     }
 
     /* Add handle indicator for bottom sheet */
