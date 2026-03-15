@@ -508,9 +508,10 @@ body::before {
 /* --- Strain Grid --- */
 .strain-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 20px;
     padding-bottom: 60px;
+    align-items: start;
 }
 
 /* --- Strain Card --- */
@@ -520,7 +521,7 @@ body::before {
     border-top: 1px solid rgba(255, 255, 255, 0.15);
     border-left: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-lg);
-    padding: 24px;
+    padding: 28px;
     cursor: pointer;
     transition: transform var(--transition-slow), box-shadow var(--transition-slow), background var(--transition-base), border-color var(--transition-base);
     backdrop-filter: blur(24px) saturate(150%);
@@ -579,8 +580,8 @@ body::before {
 }
 
 .strain-image-container {
-    margin: -24px -24px 20px -24px;
-    height: 180px;
+    margin: -28px -28px 24px -28px;
+    height: 220px;
     overflow: hidden;
     border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
     position: relative;
@@ -593,6 +594,74 @@ body::before {
     inset: 0;
     background: linear-gradient(to bottom, transparent 50%, rgba(16, 16, 26, 0.9) 100%);
     pointer-events: none;
+}
+
+/* No-image cards: placeholder same height as image area so cards match exactly */
+.strain-card--no-image .strain-image-placeholder {
+    margin: -28px -28px 24px -28px;
+    height: 220px;
+}
+
+.strain-card--no-image .strain-image-placeholder-logo {
+    height: 48px;
+}
+
+.strain-image-placeholder {
+    margin: -28px -28px 24px -28px;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--bg-input) 0%, rgba(16, 185, 129, 0.06) 100%);
+    border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
+    border-bottom: 1px solid var(--border-subtle);
+    position: relative;
+    overflow: hidden;
+    transition: background var(--transition-base), border-color var(--transition-base);
+}
+
+.strain-image-placeholder::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+    pointer-events: none;
+}
+
+.strain-card:hover .strain-image-placeholder::before {
+    opacity: 1;
+}
+
+.strain-image-placeholder-logo {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.35));
+    animation: strainPlaceholderFloat 4s ease-in-out infinite, strainPlaceholderGlow 2.5s ease-in-out infinite alternate;
+    transition: transform var(--transition-slow), filter var(--transition-base);
+}
+
+.strain-card:hover .strain-image-placeholder-logo {
+    transform: translateY(-2px) scale(1.15);
+    filter: drop-shadow(0 0 16px rgba(16, 185, 129, 0.6)) drop-shadow(0 0 24px rgba(16, 185, 129, 0.25));
+    animation: strainPlaceholderGlowHover 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes strainPlaceholderFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+@keyframes strainPlaceholderGlow {
+    0% { filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.3)); }
+    100% { filter: drop-shadow(0 0 14px rgba(16, 185, 129, 0.5)); }
+}
+
+@keyframes strainPlaceholderGlowHover {
+    0% { filter: drop-shadow(0 0 14px rgba(16, 185, 129, 0.5)) drop-shadow(0 0 20px rgba(16, 185, 129, 0.2)); }
+    100% { filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.7)) drop-shadow(0 0 28px rgba(16, 185, 129, 0.3)); }
 }
 
 .strain-image {

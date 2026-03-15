@@ -18,8 +18,11 @@ const UI = {
     }
 
     grid.innerHTML = strains.map((strain, i) => `
-      <div class="strain-card" onclick="App.showDetail('${strain.id}')" style="animation-delay: ${i * 0.03}s">
-        ${strain.image_url ? `<div class="strain-image-container"><img src="${strain.image_url}" alt="${this.escapeHtml(strain.name)}" class="strain-image" loading="lazy"></div>` : ''}
+      <div class="strain-card ${strain.image_url ? '' : 'strain-card--no-image'}" onclick="App.showDetail('${strain.id}')" style="animation-delay: ${i * 0.03}s">
+        ${strain.image_url
+          ? `<div class="strain-image-container"><img src="${strain.image_url}" alt="${this.escapeHtml(strain.name)}" class="strain-image" loading="lazy"></div>`
+          : `<div class="strain-image-placeholder" aria-hidden="true"><img src="logo-transparent.png" alt="" class="strain-image-placeholder-logo"></div>`
+        }
         <div class="strain-card-header" style="align-items: flex-start; justify-content: space-between;">
           <div style="flex-grow: 1; min-width: 0; padding-right: 12px;">
             <h3 class="strain-name" style="margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHtml(strain.name)}</h3>
@@ -37,7 +40,7 @@ const UI = {
           <span class="strain-meta-item"><strong>${strain.cbd_content ?? '—'}%</strong> CBD</span>
           ${strain.price ? `<span class="strain-meta-item"><strong>${strain.price}€</strong> PREIS</span>` : ''}
         </div>
-        ${strain.effects ? `<p class="strain-effects">${this.escapeHtml(strain.effects)}</p>` : ''}
+        ${(strain.effects || strain.notes) ? `<p class="strain-effects">${this.escapeHtml(strain.effects || strain.notes)}</p>` : ''}
         <div class="strain-card-footer">
           <span class="strain-date">${this.formatDate(strain.created_at)}</span>
           <div class="strain-actions" onclick="event.stopPropagation()">
