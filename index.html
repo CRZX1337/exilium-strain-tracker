@@ -153,8 +153,8 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label" for="strain-medical-name">Medizinischer Name</label>
-              <input type="text" id="strain-medical-name" class="form-input" placeholder="z.B. NICE 20/1 DD">
+              <label class="form-label" for="strain-medical-name">Medizinischer Name *</label>
+              <input type="text" id="strain-medical-name" class="form-input" placeholder="z.B. NICE 20/1 DD" required>
             </div>
             <div class="form-group">
               <label class="form-label" for="strain-importer">Importeur</label>
@@ -240,7 +240,7 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title">Sortendetails</h2>
-        <button class="modal-close" onclick="UI.hideModal('detail-modal')">
+        <button class="modal-close" onclick="App.closeDetail()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />

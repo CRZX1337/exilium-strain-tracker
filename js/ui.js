@@ -447,6 +447,20 @@ const UI = {
     });
   },
 
+  // --- Sync custom select trigger text from native select value (e.g. after applying URL state) ---
+  syncCustomSelectDisplays() {
+    document.querySelectorAll('.custom-select-wrapper').forEach(wrapper => {
+      const select = wrapper.querySelector('select');
+      const triggerText = wrapper.querySelector('.custom-select-trigger span');
+      if (!select || !triggerText) return;
+      const selected = select.options[select.selectedIndex];
+      triggerText.textContent = selected ? selected.text : '';
+      wrapper.querySelectorAll('.custom-select-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.value === select.value);
+      });
+    });
+  },
+
   // --- Helpers ---
   escapeHtml(text) {
     if (!text) return '';

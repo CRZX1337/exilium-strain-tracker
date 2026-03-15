@@ -8,6 +8,98 @@ const App = {
     isAdmin: false,
     formRating: 0,
     editingId: null,
+    openStrainId: null,
+
+    // --- URL State (strain in URL = name slug, e.g. ?strain=blue-dream) ---
+    slugify(name) {
+        if (!name || typeof name !== 'string') return '';
+        return name
+            .trim()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/ä/g, 'ae')
+            .replace(/ö/g, 'oe')
+            .replace(/ü/g, 'ue')
+            .replace(/ß/g, 'ss')
+            .replace(/\s+/g, '-')
+            .replace(/[^a-z0-9-]/g, '')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+    },
+
+    /** Build unique URL slug for a strain: name + medical name (or importer / short id if no medical name). */
+    getStrainSlug(strain) {
+        const namePart = this.slugify(strain.name);
+        if (!namePart) return '';
+        const medical = this.slugify(strain.medical_name || '');
+        if (medical) return `${namePart}-${medical}`;
+        const importer = this.slugify(strain.importer || '');
+        if (importer) return `${namePart}-${importer}`;
+        return `${namePart}-${(strain.id || '').slice(0, 8)}`;
+    },
+
+    getStrainBySlug(slug) {
+        if (!slug) return null;
+        const normalized = slug.toLowerCase().trim();
+        return this.strains.find(s => this.getStrainSlug(s) === normalized) || null;
+    },
+
+    getUrlState() {
+        const p = new URLSearchParams(window.location.search);
+        return {
+            q: p.get('q') || '',
+            type: p.get('type') || '',
+            sort: p.get('sort') || 'newest',
+            strainSlug: p.get('strain') || null,
+        };
+    },
+
+    setUrlState(state, push = false) {
+        const p = new URLSearchParams();
+        if (state.q) p.set('q', state.q);
+        if (state.type) p.set('type', state.type);
+        if (state.sort && state.sort !== 'newest') p.set('sort', state.sort);
+        if (state.strainId) {
+            const strain = this.strains.find(s => s.id === state.strainId);
+            if (strain) {
+                const slug = this.getStrainSlug(strain);
+                if (slug) p.set('strain', slug);
+            }
+        }
+        const query = p.toString();
+        const url = `${window.location.pathname}${query ? '?' + query : ''}`;
+        const historyState = { ...state };
+        if (push) {
+            window.history.pushState(historyState, '', url);
+        } else {
+            window.history.replaceState(historyState, '', url);
+        }
+    },
+
+    applyUrlState() {
+        const state = this.getUrlState();
+        const searchEl = document.getElementById('search-input');
+        const typeEl = document.getElementById('filter-type');
+        const sortEl = document.getElementById('filter-sort');
+        if (searchEl) searchEl.value = state.q;
+        if (typeEl) typeEl.value = state.type;
+        if (sortEl) sortEl.value = state.sort;
+        UI.syncCustomSelectDisplays();
+        this.applyFilters();
+    },
+
+    syncUrlFromFilters() {
+        const q = document.getElementById('search-input').value.trim();
+        const type = document.getElementById('filter-type').value;
+        const sort = document.getElementById('filter-sort').value;
+        this.setUrlState({
+            q,
+            type,
+            sort,
+            strainId: this.openStrainId || null,
+        }, false);
+    },
 
     // --- Initialize ---
     async init() {
@@ -16,8 +108,38 @@ const App = {
         UI.showLoading();
         await this.loadStrains();
         UI.initCustomSelects();
+        const urlState = this.getUrlState();
+        const initialStrain = this.getStrainBySlug(urlState.strainSlug);
+        if (initialStrain) this.openStrainId = initialStrain.id;
+        this.applyUrlState();
         UI.initCustomCursor();
         this.bindEvents();
+
+        if (urlState.strainSlug) {
+            const strain = this.getStrainBySlug(urlState.strainSlug);
+            if (strain) {
+                UI.renderDetail(strain);
+                UI.showModal('detail-modal');
+            } else {
+                this.openStrainId = null;
+                this.syncUrlFromFilters();
+            }
+        }
+
+        window.addEventListener('popstate', () => {
+            const state = this.getUrlState();
+            if (!state.strainSlug && this.openStrainId) {
+                this.openStrainId = null;
+                UI.hideModal('detail-modal');
+            } else if (state.strainSlug) {
+                const strain = this.getStrainBySlug(state.strainSlug);
+                if (strain && strain.id !== this.openStrainId) {
+                    this.openStrainId = strain.id;
+                    UI.renderDetail(strain);
+                    UI.showModal('detail-modal');
+                }
+            }
+        });
 
         // Disable right-click context menu globally
         document.addEventListener('contextmenu', event => event.preventDefault());
@@ -62,11 +184,20 @@ const App = {
     // --- Bind event listeners ---
     bindEvents() {
         // Search
-        document.getElementById('search-input').addEventListener('input', () => this.applyFilters());
+        document.getElementById('search-input').addEventListener('input', () => {
+            this.applyFilters();
+            this.syncUrlFromFilters();
+        });
 
         // Filters
-        document.getElementById('filter-type').addEventListener('change', () => this.applyFilters());
-        document.getElementById('filter-sort').addEventListener('change', () => this.applyFilters());
+        document.getElementById('filter-type').addEventListener('change', () => {
+            this.applyFilters();
+            this.syncUrlFromFilters();
+        });
+        document.getElementById('filter-sort').addEventListener('change', () => {
+            this.applyFilters();
+            this.syncUrlFromFilters();
+        });
 
         // Card cursor tracking for interactive glow
         document.addEventListener('mousemove', (e) => {
@@ -85,8 +216,12 @@ const App = {
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) {
-                    UI.hideModal(overlay.id);
-                    this.resetForm();
+                    if (overlay.id === 'detail-modal') {
+                        this.closeDetail();
+                    } else {
+                        UI.hideModal(overlay.id);
+                        this.resetForm();
+                    }
                 }
             });
         });
@@ -94,10 +229,15 @@ const App = {
         // Close modals on Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                document.querySelectorAll('.modal-overlay.active').forEach(overlay => {
-                    UI.hideModal(overlay.id);
-                    this.resetForm();
-                });
+                const detailOverlay = document.getElementById('detail-modal');
+                if (detailOverlay && detailOverlay.classList.contains('active')) {
+                    this.closeDetail();
+                } else {
+                    document.querySelectorAll('.modal-overlay.active').forEach(overlay => {
+                        UI.hideModal(overlay.id);
+                        this.resetForm();
+                    });
+                }
             }
         });
     },
@@ -246,6 +386,12 @@ const App = {
             return;
         }
 
+        const medicalName = document.getElementById('strain-medical-name').value.trim();
+        if (!medicalName) {
+            UI.showToast('Bitte einen medizinischen Namen eingeben', 'error');
+            return;
+        }
+
         const setSaving = (saving) => {
             if (!submitBtn) return;
             submitBtn.disabled = saving;
@@ -257,7 +403,7 @@ const App = {
         const strainData = {
             name,
             type,
-            medical_name: document.getElementById('strain-medical-name').value.trim() || null,
+            medical_name: medicalName,
             importer: document.getElementById('strain-importer').value.trim() || null,
             thc_content: parseFloat(document.getElementById('strain-thc').value) || null,
             cbd_content: parseFloat(document.getElementById('strain-cbd').value) || null,
@@ -453,8 +599,29 @@ const App = {
     showDetail(id) {
         const strain = this.strains.find(s => s.id === id);
         if (!strain) return;
+        this.openStrainId = id;
         UI.renderDetail(strain);
         UI.showModal('detail-modal');
+        const urlState = this.getUrlState();
+        const state = {
+            q: document.getElementById('search-input').value.trim(),
+            type: document.getElementById('filter-type').value,
+            sort: document.getElementById('filter-sort').value,
+            strainId: id,
+        };
+        const currentSlug = this.getStrainSlug(strain);
+        if (urlState.strainSlug === currentSlug) {
+            this.setUrlState(state, false);
+        } else {
+            this.setUrlState(state, true);
+        }
+    },
+
+    // --- Close detail modal and clear strain from URL ---
+    closeDetail() {
+        this.openStrainId = null;
+        UI.hideModal('detail-modal');
+        this.syncUrlFromFilters();
     },
 
     // --- Reset form ---
