@@ -9,7 +9,7 @@ const UI = {
     if (!strains || strains.length === 0) {
       grid.innerHTML = `
         <div class="empty-state">
-          <div class="empty-state-icon">🌿</div>
+          <img src="logo-transparent.png" alt="" class="empty-state-logo">
           <h3>Keine Sorten eingetragen</h3>
           <p>Füge deine erste Sorte hinzu, um deine Sammlung zu starten.</p>
         </div>

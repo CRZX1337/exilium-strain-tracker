@@ -822,10 +822,12 @@ body::before {
     grid-column: 1 / -1;
 }
 
-.empty-state-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-    opacity: 0.5;
+.empty-state-logo {
+    height: 80px;
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 24px;
+    filter: drop-shadow(0 0 16px rgba(16, 185, 129, 0.4));
     animation: floatIcon 3s ease-in-out infinite;
     display: inline-block;
 }
