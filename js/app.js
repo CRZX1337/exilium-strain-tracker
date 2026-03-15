@@ -146,18 +146,27 @@ const App = {
         UI.renderStrains(results);
     },
 
-    // --- Admin password check ---
-    async hashPassword(password) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(password);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    },
-
+    // --- Admin password verification (Backend) ---
     async verifyPassword(password) {
-        const hash = await this.hashPassword(password);
-        return hash === ADMIN_PASSWORD_HASH;
+        try {
+            // Call Supabase Edge Function to verify password securely
+            // This prevents password hashes from being exposed in frontend code
+            const { data, error } = await db.functions.invoke('verify-admin-password', {
+                body: { password }
+            });
+
+            if (error) {
+                console.error('Password verification error:', error);
+                return false;
+            }
+
+            return data?.valid === true;
+        } catch (err) {
+            console.error('Error calling password verification function:', err);
+            // If Edge Function not available, reject auth (fail secure)
+            UI.showToast('Verbindung zum Server fehlgeschlagen', 'error');
+            return false;
+        }
     },
 
     // --- Add Strain (with password check) ---
@@ -192,7 +201,17 @@ const App = {
             return;
         }
 
+        // Show loading state
+        const submitBtn = modal.querySelector('.btn-primary');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Überprüfe...';
+
         const valid = await this.verifyPassword(password);
+        
+        // Restore button
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
         if (valid) {
             this.isAdmin = true;
             errorEl.classList.remove('show');
