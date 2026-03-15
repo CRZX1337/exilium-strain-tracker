@@ -245,6 +245,14 @@ body::before {
     transform: translateY(0) scale(0.98);
 }
 
+.btn-primary:disabled,
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    pointer-events: none;
+}
+
 .btn-full {
     width: 100%;
     justify-content: center;

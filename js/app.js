@@ -233,6 +233,7 @@ const App = {
     // --- Save strain (add or edit) ---
     async saveStrain() {
         const form = document.getElementById('strain-form');
+        const submitBtn = document.getElementById('submit-strain-btn');
         const name = document.getElementById('strain-name').value.trim();
         const type = document.getElementById('strain-type').value;
 
@@ -244,6 +245,14 @@ const App = {
             UI.showToast('Bitte einen Typ auswählen', 'error');
             return;
         }
+
+        const setSaving = (saving) => {
+            if (!submitBtn) return;
+            submitBtn.disabled = saving;
+            submitBtn.textContent = saving ? 'Speichern…' : 'Speichern';
+        };
+
+        setSaving(true);
 
         const strainData = {
             name,
@@ -332,6 +341,8 @@ const App = {
         } catch (err) {
             console.error('Error saving strain:', err);
             UI.showToast('Fehler beim Speichern: ' + err.message, 'error');
+        } finally {
+            setSaving(false);
         }
     },
 
