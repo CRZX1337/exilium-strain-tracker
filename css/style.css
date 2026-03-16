@@ -815,6 +815,33 @@ body::before {
     background: rgba(239, 68, 68, 0.1);
 }
 
+/* --- Copy Medical Name Button --- */
+.copy-medical-btn {
+    background: none !important;
+    border: none !important;
+    color: var(--text-muted) !important;
+    cursor: pointer !important;
+    padding: 4px !important;
+    border-radius: var(--radius-sm) !important;
+    transition: all var(--transition-fast) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    opacity: 0.7 !important;
+}
+
+.copy-medical-btn:hover {
+    color: var(--accent) !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+    opacity: 1 !important;
+    transform: scale(1.1) !important;
+}
+
+.copy-medical-btn:active {
+    transform: scale(0.95) !important;
+}
+
 /* --- Empty State --- */
 .empty-state {
     text-align: center;

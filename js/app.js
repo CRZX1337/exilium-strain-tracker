@@ -718,6 +718,17 @@ const App = {
         return div.innerHTML;
     },
 
+    // --- Copy medical name to clipboard ---
+    async copyMedicalName(medicalName) {
+        try {
+            await navigator.clipboard.writeText(medicalName);
+            UI.showToast('Medizinischer Name kopiert', 'success');
+        } catch (err) {
+            console.error('Failed to copy medical name:', err);
+            UI.showToast('Fehler beim Kopieren', 'error');
+        }
+    },
+
     // --- Cancel form ---
     cancelForm() {
         UI.hideModal('form-modal');

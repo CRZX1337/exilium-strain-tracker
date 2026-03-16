@@ -191,7 +191,7 @@ const UI = {
       <div class="strain-card-header" style="margin-bottom:20px; align-items: flex-start; justify-content: space-between;">
         <div style="flex-grow: 1; padding-right: 16px;">
           <h2 class="strain-name" style="font-size:1.5rem; margin: 0;">${this.escapeHtml(strain.name)}</h2>
-          ${strain.medical_name ? `<div class="strain-medical-name" style="font-size: 1rem; color: var(--text-secondary); margin-top: 6px;">${this.escapeHtml(strain.medical_name)}</div>` : ''}
+          ${strain.medical_name ? `<div class="strain-medical-name" style="font-size: 1rem; color: var(--text-secondary); margin-top: 6px; display: flex; align-items: center; gap: 8px;">${this.escapeHtml(strain.medical_name)}<button class="copy-medical-btn" onclick="App.copyMedicalName('${this.escapeHtml(strain.medical_name)}')" title="Medizinischen Namen kopieren"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>` : ''}
         </div>
         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex-shrink: 0;">
           <span class="strain-type-badge ${strain.type.toLowerCase()}">${strain.type}</span>
