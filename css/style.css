@@ -2577,6 +2577,13 @@ textarea,
     box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
 /* Admin Panel Button - Clean minimal design matching app style */
 #admin-panel-btn {
     background: var(--bg-input);
@@ -2585,6 +2592,11 @@ textarea,
     border-radius: var(--radius-md);
     padding: 10px;
     transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    width: 40px;
 }
 
 #admin-panel-btn:hover {
