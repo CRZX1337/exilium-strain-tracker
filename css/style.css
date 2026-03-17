@@ -139,6 +139,14 @@ body::before {
     position: sticky;
     top: 0;
     z-index: 100;
+    transition: transform 0.3s ease;
+}
+
+/* Mobile: Hide header when scrolling down */
+@media (max-width: 768px) {
+    .header-hidden {
+        transform: translateY(-100%);
+    }
 }
 
 .header-inner {

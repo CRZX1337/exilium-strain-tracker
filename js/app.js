@@ -1193,5 +1193,60 @@ const App = {
     }
 };
 
+// --- Mobile header scroll behavior (hide on scroll down, show on scroll up) ---
+(function() {
+    let lastScrollY = window.scrollY;
+    let headerHidden = false;
+    const header = document.querySelector('.header');
+    const scrollThreshold = 100;
+
+    function handleHeaderScroll() {
+        const currentScrollY = window.scrollY;
+        
+        // Only apply on mobile
+        if (window.innerWidth > 768) {
+            header?.classList.remove('header-hidden');
+            return;
+        }
+        
+        // Scrolling down and past threshold - hide header
+        if (currentScrollY > lastScrollY && currentScrollY > scrollThreshold) {
+            if (!headerHidden && header) {
+                header.classList.add('header-hidden');
+                headerHidden = true;
+            }
+        }
+        // Scrolling up - show header
+        else if (currentScrollY < lastScrollY) {
+            if (headerHidden && header) {
+                header.classList.remove('header-hidden');
+                headerHidden = false;
+            }
+        }
+        
+        lastScrollY = currentScrollY;
+    }
+
+    // Throttled scroll listener
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                handleHeaderScroll();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }, { passive: true });
+
+    // Reset on resize to desktop
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768 && header) {
+            header.classList.remove('header-hidden');
+            headerHidden = false;
+        }
+    });
+})();
+
 // --- Start the app ---
 document.addEventListener('DOMContentLoaded', () => App.init());
