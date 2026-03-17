@@ -40,6 +40,13 @@
         <div class="logo-text">Exilium <span>Tracker</span></div>
       </a>
       <div class="header-actions">
+        <button id="admin-panel-btn" class="btn btn-icon" onclick="App.openAdminPanel()" title="Admin Panel" style="display:none">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </button>
         <button id="add-strain-btn" class="btn btn-secondary" onclick="App.openAddStrain()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
             stroke-linecap="round">
@@ -234,6 +241,13 @@
             <textarea id="strain-notes" class="form-textarea" placeholder="Persönliche Notizen…"></textarea>
           </div>
 
+          <div class="form-group checkbox-group" id="privacy-group" style="display:none">
+            <label class="checkbox-label">
+              <input type="checkbox" id="strain-private" class="form-checkbox">
+              <span class="checkbox-text">🔒 Privat (nicht öffentlich sichtbar)</span>
+            </label>
+          </div>
+
           <div class="form-actions">
             <button type="button" class="btn btn-secondary" onclick="App.cancelForm()">Abbrechen</button>
             <button type="submit" id="submit-strain-btn" class="btn btn-primary">Speichern</button>
@@ -258,6 +272,132 @@
       </div>
       <div class="modal-body" id="detail-content">
         <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ADMIN PANEL MODAL ===== -->
+  <div id="admin-modal" class="modal-overlay admin-modal-overlay">
+    <div class="modal admin-modal">
+      <div class="modal-header">
+        <h2 class="modal-title">⚙️ Admin Panel</h2>
+        <button class="modal-close" onclick="App.closeAdminPanel()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body admin-body">
+        <!-- Admin Tabs -->
+        <div class="admin-tabs">
+          <button class="admin-tab active" data-tab="strains" onclick="App.switchAdminTab('strains')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+            Sorten
+          </button>
+          <button class="admin-tab" data-tab="users" onclick="App.switchAdminTab('users')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Benutzer
+          </button>
+          <button class="admin-tab" data-tab="images" onclick="App.switchAdminTab('images')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            Bilder
+          </button>
+        </div>
+
+        <!-- Strains Tab -->
+        <div id="admin-tab-strains" class="admin-tab-content active">
+          <div class="admin-section-header">
+            <h3>Alle Sorten verwalten</h3>
+            <div class="admin-filter">
+              <input type="text" id="admin-strain-search" class="form-input" placeholder="Sorten suchen…" oninput="App.filterAdminStrains()">
+              <select id="admin-strain-visibility" class="form-select" onchange="App.filterAdminStrains()">
+                <option value="all">Alle anzeigen</option>
+                <option value="public">Nur öffentlich</option>
+                <option value="private">Nur privat</option>
+              </select>
+            </div>
+          </div>
+          <div id="admin-strains-list" class="admin-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="admin-tab-users" class="admin-tab-content">
+          <div class="admin-section-header">
+            <h3>Benutzerverwaltung</h3>
+            <button class="btn btn-primary" onclick="App.showCreateUserForm()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Benutzer hinzufügen
+            </button>
+          </div>
+          <div id="admin-users-list" class="admin-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Images Tab -->
+        <div id="admin-tab-images" class="admin-tab-content">
+          <div class="admin-section-header">
+            <h3>Bilderverwaltung</h3>
+            <div class="admin-stats" id="image-stats">
+              <span id="total-images">0 Bilder</span>
+              <span id="orphaned-images">0 ungenutzt</span>
+            </div>
+          </div>
+          <div id="admin-images-list" class="admin-images-grid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CREATE USER MODAL ===== -->
+  <div id="create-user-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">👤 Neuen Benutzer erstellen</h2>
+        <button class="modal-close" onclick="UI.hideModal('create-user-modal')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="create-user-form" onsubmit="event.preventDefault(); App.createUser();">
+          <div class="form-group">
+            <label class="form-label" for="new-user-email">E-Mail *</label>
+            <input type="email" id="new-user-email" class="form-input" placeholder="user@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="new-user-password">Passwort *</label>
+            <input type="password" id="new-user-password" class="form-input" placeholder="Mindestens 6 Zeichen" minlength="6" required>
+          </div>
+          <p class="form-hint">Der Benutzer erhält eine E-Mail zur Bestätigung (wenn aktiviert).</p>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="UI.hideModal('create-user-modal')">Abbrechen</button>
+            <button type="submit" class="btn btn-primary">Benutzer erstellen</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

@@ -166,10 +166,17 @@ const App = {
     // --- Load strains from Supabase ---
     async loadStrains() {
         try {
-            const { data, error } = await db
+            let query = db
                 .from('strains')
                 .select('*')
                 .order('created_at', { ascending: false });
+
+            // Non-authenticated users only see public strains
+            if (!Auth.isAuthenticated) {
+                query = query.eq('is_private', false);
+            }
+
+            const { data, error } = await query;
 
             if (error) throw error;
 
@@ -299,6 +306,10 @@ const App = {
             document.getElementById('form-title').textContent = 'Neue Sorte hinzufügen';
             document.getElementById('strain-form').reset();
             UI.renderStarInput('rating-input', 0);
+            // Show privacy option for admins
+            document.getElementById('privacy-group').style.display = 'flex';
+            document.getElementById('strain-private').checked = false;
+            this.removeImagePreview();
             UI.showModal('form-modal');
         } else {
             UI.showModal('password-modal');
@@ -421,6 +432,7 @@ const App = {
             effects: document.getElementById('strain-effects').value.trim() || null,
             taste: document.getElementById('strain-taste').value.trim() || null,
             notes: document.getElementById('strain-notes').value.trim() || null,
+            is_private: document.getElementById('strain-private')?.checked || false,
         };
 
         const fileInput = document.getElementById('strain-image');
@@ -531,6 +543,10 @@ const App = {
         document.getElementById('strain-taste').value = strain.taste || '';
         document.getElementById('strain-notes').value = strain.notes || '';
         document.getElementById('strain-image').value = ''; // Reset file input
+        
+        // Show privacy option for admins and set value
+        document.getElementById('privacy-group').style.display = 'flex';
+        document.getElementById('strain-private').checked = strain.is_private || false;
         
         // Show existing image in preview if available
         if (strain.image_url) {
@@ -742,6 +758,425 @@ const App = {
     cancelForm() {
         UI.hideModal('form-modal');
         this.resetForm();
+    },
+
+    // ==========================================
+    // ADMIN PANEL
+    // ==========================================
+
+    /** Show/hide admin panel button based on auth state */
+    updateAdminButton() {
+        const adminBtn = document.getElementById('admin-panel-btn');
+        if (adminBtn) {
+            adminBtn.style.display = Auth.isAuthenticated ? 'flex' : 'none';
+        }
+    },
+
+    /** Open admin panel */
+    openAdminPanel() {
+        if (!Auth.isAuthenticated) {
+            UI.showToast('Admin-Zugang erforderlich', 'error');
+            return;
+        }
+        UI.showModal('admin-modal');
+        this.switchAdminTab('strains');
+    },
+
+    /** Close admin panel */
+    closeAdminPanel() {
+        UI.hideModal('admin-modal');
+    },
+
+    /** Switch between admin tabs */
+    async switchAdminTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.admin-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === tabName);
+        });
+
+        // Update tab content
+        document.querySelectorAll('.admin-tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(`admin-tab-${tabName}`).classList.add('active');
+
+        // Load tab data
+        if (tabName === 'strains') {
+            await this.loadAdminStrains();
+        } else if (tabName === 'users') {
+            await this.loadAdminUsers();
+        } else if (tabName === 'images') {
+            await this.loadAdminImages();
+        }
+    },
+
+    // --- Strains Management ---
+
+    /** Load all strains for admin panel */
+    async loadAdminStrains() {
+        const list = document.getElementById('admin-strains-list');
+        if (!list) return;
+
+        list.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+        try {
+            const { data, error } = await db
+                .from('strains')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            this.adminStrains = data || [];
+            this.renderAdminStrains();
+        } catch (err) {
+            console.error('Error loading admin strains:', err);
+            list.innerHTML = '<p class="empty-state">Fehler beim Laden der Sorten</p>';
+        }
+    },
+
+    /** Render strains in admin panel */
+    renderAdminStrains() {
+        const list = document.getElementById('admin-strains-list');
+        const search = document.getElementById('admin-strain-search')?.value.toLowerCase() || '';
+        const visibility = document.getElementById('admin-strain-visibility')?.value || 'all';
+
+        let filtered = this.adminStrains || [];
+
+        // Apply search filter
+        if (search) {
+            filtered = filtered.filter(s =>
+                s.name.toLowerCase().includes(search) ||
+                (s.medical_name && s.medical_name.toLowerCase().includes(search))
+            );
+        }
+
+        // Apply visibility filter
+        if (visibility === 'public') {
+            filtered = filtered.filter(s => !s.is_private);
+        } else if (visibility === 'private') {
+            filtered = filtered.filter(s => s.is_private);
+        }
+
+        if (filtered.length === 0) {
+            list.innerHTML = '<p class="empty-state">Keine Sorten gefunden</p>';
+            return;
+        }
+
+        list.innerHTML = filtered.map(strain => `
+            <div class="admin-list-item ${strain.is_private ? 'private' : 'public'}">
+                <div class="admin-item-info">
+                    <div class="admin-item-title">${this.escapeHtml(strain.name)}</div>
+                    <div class="admin-item-meta">
+                        <span>${this.escapeHtml(strain.medical_name || '-')}</span>
+                        <span class="strain-type-badge ${strain.type.toLowerCase()}">${strain.type}</span>
+                        ${strain.is_private ? '<span class="visibility-badge private">🔒 Privat</span>' : '<span class="visibility-badge public">🌐 Öffentlich</span>'}
+                    </div>
+                </div>
+                <div class="admin-item-actions">
+                    <button class="btn-privacy ${strain.is_private ? 'private' : ''}" 
+                            onclick="App.toggleStrainPrivacy('${strain.id}', ${!strain.is_private})"
+                            title="${strain.is_private ? 'Öffentlich machen' : 'Privat machen'}">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            ${strain.is_private 
+                                ? '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'
+                                : '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="16" x2="12" y2="16"/>'
+                            }
+                        </svg>
+                    </button>
+                    <button class="btn btn-secondary" onclick="App.editStrain('${strain.id}')">Bearbeiten</button>
+                    <button class="btn btn-danger" onclick="App.deleteStrain('${strain.id}')">Löschen</button>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    /** Filter admin strains based on search and visibility */
+    filterAdminStrains() {
+        this.renderAdminStrains();
+    },
+
+    /** Toggle strain privacy status */
+    async toggleStrainPrivacy(strainId, isPrivate) {
+        try {
+            const { error } = await db
+                .from('strains')
+                .update({ is_private: isPrivate })
+                .eq('id', strainId);
+
+            if (error) throw error;
+
+            UI.showToast(isPrivate ? 'Sorte ist jetzt privat' : 'Sorte ist jetzt öffentlich', 'success');
+            
+            // Update local data and re-render
+            const strain = this.adminStrains.find(s => s.id === strainId);
+            if (strain) {
+                strain.is_private = isPrivate;
+            }
+            this.renderAdminStrains();
+            
+            // Also update main strain list
+            const mainStrain = this.strains.find(s => s.id === strainId);
+            if (mainStrain) {
+                mainStrain.is_private = isPrivate;
+                this.applyFilters();
+            }
+        } catch (err) {
+            console.error('Error toggling privacy:', err);
+            UI.showToast('Fehler beim Ändern der Sichtbarkeit', 'error');
+        }
+    },
+
+    // --- Users Management ---
+
+    /** Load all users for admin panel */
+    async loadAdminUsers() {
+        const list = document.getElementById('admin-users-list');
+        if (!list) return;
+
+        list.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+        try {
+            // Get users from Supabase Auth API using the admin method
+            const { data: { users }, error } = await db.auth.admin.listUsers();
+
+            if (error) {
+                // Fallback: if admin API not available, show current user info
+                if (Auth.user) {
+                    this.adminUsers = [{
+                        id: Auth.user.id,
+                        email: Auth.user.email,
+                        email_confirmed_at: Auth.user.email_confirmed_at,
+                        created_at: Auth.user.created_at,
+                        last_sign_in_at: Auth.user.last_sign_in_at
+                    }];
+                    this.renderAdminUsers();
+                    return;
+                }
+                throw error;
+            }
+
+            this.adminUsers = users || [];
+            this.renderAdminUsers();
+        } catch (err) {
+            console.error('Error loading users:', err);
+            // Fallback: show current user only
+            if (Auth.user) {
+                this.adminUsers = [{
+                    id: Auth.user.id,
+                    email: Auth.user.email,
+                    email_confirmed_at: Auth.user.email_confirmed_at,
+                    created_at: Auth.user.created_at,
+                    last_sign_in_at: Auth.user.last_sign_in_at
+                }];
+                this.renderAdminUsers();
+            } else {
+                list.innerHTML = '<p class="empty-state">Benutzer konnten nicht geladen werden</p>';
+            }
+        }
+    },
+
+    /** Render users in admin panel */
+    renderAdminUsers() {
+        const list = document.getElementById('admin-users-list');
+        
+        if (!this.adminUsers || this.adminUsers.length === 0) {
+            list.innerHTML = '<p class="empty-state">Keine Benutzer gefunden</p>';
+            return;
+        }
+
+        list.innerHTML = this.adminUsers.map(user => {
+            const isConfirmed = !!user.email_confirmed_at;
+            const createdDate = new Date(user.created_at).toLocaleDateString('de-DE');
+            const lastSignIn = user.last_sign_in_at 
+                ? new Date(user.last_sign_in_at).toLocaleDateString('de-DE')
+                : 'Nie';
+
+            return `
+                <div class="admin-list-item">
+                    <div class="admin-item-info">
+                        <div class="admin-item-title">${this.escapeHtml(user.email)}</div>
+                        <div class="admin-item-meta">
+                            <span class="user-status ${isConfirmed ? 'confirmed' : 'unconfirmed'}">
+                                ${isConfirmed ? '✓ Bestätigt' : '⏳ Unbestätigt'}
+                            </span>
+                            <span>Erstellt: ${createdDate}</span>
+                            <span>Letzter Login: ${lastSignIn}</span>
+                        </div>
+                    </div>
+                    <div class="admin-item-actions">
+                        ${user.id !== Auth.user?.id ? `
+                            <button class="btn btn-danger" onclick="App.deleteUser('${user.id}')">Löschen</button>
+                        ` : '<span class="form-hint">(Du)</span>'}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    /** Show create user form */
+    showCreateUserForm() {
+        document.getElementById('create-user-form').reset();
+        UI.showModal('create-user-modal');
+    },
+
+    /** Create new user */
+    async createUser() {
+        const email = document.getElementById('new-user-email').value.trim();
+        const password = document.getElementById('new-user-password').value;
+
+        if (!email || !password || password.length < 6) {
+            UI.showToast('Bitte gültige E-Mail und Passwort (min. 6 Zeichen) eingeben', 'error');
+            return;
+        }
+
+        try {
+            // Try admin API first
+            const { data, error } = await db.auth.admin.createUser({
+                email,
+                password,
+                email_confirm: true
+            });
+
+            if (error) {
+                // Fallback: regular signup (user will need to confirm email)
+                const { error: signUpError } = await db.auth.signUp({
+                    email,
+                    password
+                });
+                
+                if (signUpError) throw signUpError;
+                
+                UI.showToast('Benutzer erstellt. E-Mail-Bestätigung erforderlich.', 'success');
+            } else {
+                UI.showToast('Benutzer erfolgreich erstellt', 'success');
+            }
+
+            UI.hideModal('create-user-modal');
+            await this.loadAdminUsers();
+        } catch (err) {
+            console.error('Error creating user:', err);
+            UI.showToast('Fehler: ' + err.message, 'error');
+        }
+    },
+
+    /** Delete user */
+    async deleteUser(userId) {
+        if (!confirm('Diesen Benutzer wirklich löschen?')) return;
+
+        try {
+            const { error } = await db.auth.admin.deleteUser(userId);
+
+            if (error) throw error;
+
+            UI.showToast('Benutzer gelöscht', 'success');
+            await this.loadAdminUsers();
+        } catch (err) {
+            console.error('Error deleting user:', err);
+            UI.showToast('Fehler beim Löschen: ' + err.message, 'error');
+        }
+    },
+
+    // --- Images Management ---
+
+    /** Load all images for admin panel */
+    async loadAdminImages() {
+        const list = document.getElementById('admin-images-list');
+        const statsEl = document.getElementById('image-stats');
+        if (!list) return;
+
+        list.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+        try {
+            // Get all images from storage
+            const { data: files, error } = await db.storage
+                .from('strain-images')
+                .list();
+
+            if (error) throw error;
+
+            // Get all strain image URLs to check which images are used
+            const { data: strains } = await db.from('strains').select('image_url');
+            const usedUrls = new Set(strains?.map(s => s.image_url).filter(Boolean) || []);
+
+            this.adminImages = (files || []).map(file => {
+                const { data } = db.storage.from('strain-images').getPublicUrl(file.name);
+                const publicUrl = data.publicUrl;
+                return {
+                    ...file,
+                    publicUrl,
+                    isUsed: usedUrls.has(publicUrl)
+                };
+            });
+
+            // Update stats
+            const total = this.adminImages.length;
+            const orphaned = this.adminImages.filter(img => !img.isUsed).length;
+            document.getElementById('total-images').textContent = `${total} Bilder`;
+            document.getElementById('orphaned-images').textContent = `${orphaned} ungenutzt`;
+
+            this.renderAdminImages();
+        } catch (err) {
+            console.error('Error loading images:', err);
+            list.innerHTML = '<p class="empty-state">Fehler beim Laden der Bilder</p>';
+        }
+    },
+
+    /** Render images in admin panel */
+    renderAdminImages() {
+        const list = document.getElementById('admin-images-list');
+        
+        if (!this.adminImages || this.adminImages.length === 0) {
+            list.innerHTML = '<p class="empty-state">Keine Bilder vorhanden</p>';
+            return;
+        }
+
+        list.innerHTML = this.adminImages.map(img => `
+            <div class="admin-image-item ${img.isUsed ? '' : 'orphaned'}">
+                <img src="${img.publicUrl}" alt="${this.escapeHtml(img.name)}">
+                <div class="admin-image-overlay">
+                    <button class="btn btn-primary" onclick="App.viewImage('${img.publicUrl}')">Ansehen</button>
+                    <button class="btn btn-danger" onclick="App.deleteImage('${img.name}')">Löschen</button>
+                </div>
+                <div class="admin-image-info">
+                    ${img.isUsed ? '✓ In Verwendung' : '⚠ Ungenutzt'} • ${this.formatFileSize(img.metadata?.size || 0)}
+                </div>
+            </div>
+        `).join('');
+    },
+
+    /** Format file size */
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    },
+
+    /** View image in lightbox */
+    viewImage(url) {
+        document.getElementById('lightbox-image').src = url;
+        UI.showModal('lightbox-modal');
+    },
+
+    /** Delete image from storage */
+    async deleteImage(fileName) {
+        if (!confirm('Dieses Bild wirklich löschen?')) return;
+
+        try {
+            const { error } = await db.storage
+                .from('strain-images')
+                .remove([fileName]);
+
+            if (error) throw error;
+
+            UI.showToast('Bild gelöscht', 'success');
+            await this.loadAdminImages();
+        } catch (err) {
+            console.error('Error deleting image:', err);
+            UI.showToast('Fehler beim Löschen', 'error');
+        }
     }
 };
 

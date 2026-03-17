@@ -53,6 +53,7 @@ const Auth = {
     _onAuthChange() {
         if (typeof App !== 'undefined') {
             App.isAdmin = this.isAuthenticated;
+            App.updateAdminButton();
 
             // Update the "Add Strain" button style to reflect login state
             const addBtn = document.getElementById('add-strain-btn');

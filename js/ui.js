@@ -30,6 +30,7 @@ const UI = {
           </div>
           <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0;">
             <span class="strain-type-badge ${strain.type.toLowerCase()}">${strain.type}</span>
+            ${Auth?.isAuthenticated && strain.is_private ? '<span class="visibility-badge private" style="font-size: 0.6rem; padding: 2px 6px;">🔒</span>' : ''}
             <div class="strain-stars" style="display: inline-flex; font-size: 24px; line-height: 1;">
               ${this.renderStars(strain.rating)}
             </div>
