@@ -121,11 +121,13 @@
       </div>
       <div class="modal-body">
         <div class="password-prompt">
-          <p>Gib das Admin-Passwort ein, um Sorten hinzuzufügen, zu bearbeiten oder zu löschen.</p>
+          <p>Melde dich mit deinem Admin-Konto an.</p>
+          <input type="email" id="admin-email" class="form-input" placeholder="E-Mail…"
+            onkeydown="if(event.key==='Enter')document.getElementById('admin-password').focus()" style="margin-bottom:8px">
           <input type="password" id="admin-password" class="form-input" placeholder="Passwort…"
             onkeydown="if(event.key==='Enter')App.submitPassword()">
-          <p class="password-error">Falsches Passwort</p>
-          <button class="btn btn-primary" onclick="App.submitPassword()" style="margin-top:8px">Bestätigen</button>
+          <p class="password-error">Ungültige Anmeldedaten</p>
+          <button class="btn btn-primary" onclick="App.submitPassword()" style="margin-top:8px">Anmelden</button>
         </div>
       </div>
     </div>
@@ -271,6 +273,7 @@
 
   <!-- ===== Scripts ===== -->
   <script src="js/supabase-config.js"></script>
+  <script src="js/supabase-auth.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/app.js"></script>
 

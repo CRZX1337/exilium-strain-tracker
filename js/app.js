@@ -105,6 +105,9 @@ const App = {
     async init() {
         const loadStart = Date.now();
 
+        // Initialise Supabase Auth and sync session state
+        await Auth.init();
+
         UI.showLoading();
         await this.loadStrains();
         UI.initCustomSelects();
@@ -286,23 +289,11 @@ const App = {
         UI.renderStrains(results);
     },
 
-    // --- Admin password check ---
-    async hashPassword(password) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(password);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    },
+    // --- Admin auth (delegated to Supabase Auth) ---
 
-    async verifyPassword(password) {
-        const hash = await this.hashPassword(password);
-        return hash === ADMIN_PASSWORD_HASH;
-    },
-
-    // --- Add Strain (with password check) ---
+    // --- Add Strain (with auth check) ---
     openAddStrain() {
-        if (this.isAdmin) {
+        if (Auth.isAuthenticated) {
             this.editingId = null;
             this.formRating = 0;
             document.getElementById('form-title').textContent = 'Neue Sorte hinzufügen';
@@ -319,21 +310,23 @@ const App = {
 
     async submitPassword() {
         const passwordInput = document.getElementById('admin-password');
+        const emailInput = document.getElementById('admin-email');
         const password = passwordInput.value;
+        const email = emailInput ? emailInput.value.trim() : '';
         const errorEl = document.querySelector('.password-error');
         const modal = document.querySelector('#password-modal .modal');
 
-        if (!password) {
+        if (!email || !password) {
             modal.classList.remove('shake');
-            void modal.offsetWidth; // Trigger reflow to restart animation
+            void modal.offsetWidth;
             modal.classList.add('shake');
-            errorEl.textContent = 'Bitte Passwort eingeben';
+            errorEl.textContent = 'Bitte E-Mail und Passwort eingeben';
             errorEl.classList.add('show');
             return;
         }
 
-        const valid = await this.verifyPassword(password);
-        if (valid) {
+        const { success, error } = await Auth.signIn(email, password);
+        if (success) {
             this.isAdmin = true;
             errorEl.classList.remove('show');
 
@@ -357,13 +350,13 @@ const App = {
                 } else {
                     this.openAddStrain();
                 }
-            }, 400); // Wait for pulse animation
+            }, 400);
         } else {
             // Error animation
             modal.classList.remove('shake');
-            void modal.offsetWidth; // Trigger reflow to restart animation
+            void modal.offsetWidth;
             modal.classList.add('shake');
-            errorEl.textContent = 'Falsches Passwort';
+            errorEl.textContent = error || 'Ungültige Anmeldedaten';
             errorEl.classList.add('show');
             passwordInput.value = '';
             passwordInput.focus();
@@ -494,7 +487,7 @@ const App = {
 
     // --- Edit strain ---
     async editStrain(id) {
-        if (!this.isAdmin) {
+        if (!Auth.isAuthenticated) {
             UI.showModal('password-modal');
             document.getElementById('admin-password').value = '';
             document.getElementById('admin-password').focus();
@@ -553,7 +546,7 @@ const App = {
 
     // --- Delete strain ---
     async deleteStrain(id) {
-        if (!this.isAdmin) {
+        if (!Auth.isAuthenticated) {
             UI.showToast('Admin-Zugang erforderlich', 'error');
             return;
         }
