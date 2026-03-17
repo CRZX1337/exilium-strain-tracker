@@ -298,6 +298,22 @@ const App = {
 
     // --- Admin auth (delegated to Supabase Auth) ---
 
+    /** Show login modal directly */
+    showLoginModal() {
+        // Mark that we ONLY want to login, not add a strain after
+        this._loginOnly = true;
+        UI.showModal('password-modal');
+        document.getElementById('admin-password').value = '';
+        document.getElementById('admin-email').value = '';
+        document.querySelector('.password-error').classList.remove('show');
+        // Reset success overlay state
+        const promptInner = document.getElementById('password-prompt-inner');
+        const successEl = document.getElementById('login-success');
+        if (promptInner) promptInner.style.display = '';
+        if (successEl) successEl.classList.remove('visible');
+        document.getElementById('admin-email').focus();
+    },
+
     // --- Add Strain (with auth check) ---
     openAddStrain() {
         if (Auth.isAuthenticated) {
@@ -312,16 +328,9 @@ const App = {
             this.removeImagePreview();
             UI.showModal('form-modal');
         } else {
-            UI.showModal('password-modal');
-            document.getElementById('admin-password').value = '';
-            document.getElementById('admin-email') && (document.getElementById('admin-email').value = '');
-            document.querySelector('.password-error').classList.remove('show');
-            // Reset success overlay state
-            const promptInner = document.getElementById('password-prompt-inner');
-            const successEl = document.getElementById('login-success');
-            if (promptInner) promptInner.style.display = '';
-            if (successEl) successEl.classList.remove('visible');
-            document.getElementById('admin-email') && document.getElementById('admin-email').focus();
+            // Mark that we want to login AND then add a strain
+            this._loginOnly = false;
+            this.showLoginModal();
         }
     },
 
@@ -369,12 +378,16 @@ const App = {
                 addBtn.classList.remove('btn-secondary');
                 addBtn.classList.add('btn-primary');
 
-                // Now open the form or edit the pending strain
-                if (this._pendingEdit) {
+                // Check if we should open add strain form or just login
+                if (this._loginOnly) {
+                    // Just logged in, nothing else to do
+                    this._loginOnly = false;
+                } else if (this._pendingEdit) {
                     const pendingId = this._pendingEdit;
                     this._pendingEdit = null;
                     this.editStrain(pendingId);
                 } else {
+                    // Came from "+ Neue Sorte" button, open the form
                     this.openAddStrain();
                 }
             }, 1400);

@@ -55,15 +55,19 @@ const Auth = {
             App.isAdmin = this.isAuthenticated;
             App.updateAdminButton();
 
-            // Update the "Add Strain" button style to reflect login state
+            // Toggle login button visibility (show when NOT authenticated)
+            const loginBtn = document.getElementById('login-btn-header');
+            if (loginBtn) {
+                loginBtn.style.display = this.isAuthenticated ? 'none' : 'flex';
+            }
+
+            // Toggle + Neue Sorte button visibility (only show when authenticated)
             const addBtn = document.getElementById('add-strain-btn');
             if (addBtn) {
+                addBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
                 if (this.isAuthenticated) {
                     addBtn.classList.remove('btn-secondary');
                     addBtn.classList.add('btn-primary');
-                } else {
-                    addBtn.classList.remove('btn-primary');
-                    addBtn.classList.add('btn-secondary');
                 }
             }
         }

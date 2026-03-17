@@ -40,6 +40,14 @@
         <div class="logo-text">Exilium <span>Tracker</span></div>
       </a>
       <div class="header-actions">
+        <button id="login-btn-header" class="btn btn-ghost" onclick="App.showLoginModal()" style="display:none">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10,17 15,12 10,7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          Login
+        </button>
         <button id="admin-panel-btn" class="btn btn-icon" onclick="App.openAdminPanel()" title="Admin Panel" style="display:none">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 2L2 7l10 5 10-5-10-5z"/>
