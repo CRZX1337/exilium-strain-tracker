@@ -303,8 +303,14 @@ const App = {
         } else {
             UI.showModal('password-modal');
             document.getElementById('admin-password').value = '';
-            document.getElementById('admin-password').focus();
+            document.getElementById('admin-email') && (document.getElementById('admin-email').value = '');
             document.querySelector('.password-error').classList.remove('show');
+            // Reset success overlay state
+            const promptInner = document.getElementById('password-prompt-inner');
+            const successEl = document.getElementById('login-success');
+            if (promptInner) promptInner.style.display = '';
+            if (successEl) successEl.classList.remove('visible');
+            document.getElementById('admin-email') && document.getElementById('admin-email').focus();
         }
     },
 
@@ -330,7 +336,17 @@ const App = {
             this.isAdmin = true;
             errorEl.classList.remove('show');
 
-            // Success animation
+            // Show checkmark animation
+            const promptInner = document.getElementById('password-prompt-inner');
+            const successEl = document.getElementById('login-success');
+            promptInner.style.display = 'none';
+            successEl.classList.add('visible');
+
+            // Re-trigger SVG stroke animations by cloning the SVG node
+            const svg = successEl.querySelector('svg');
+            const fresh = svg.cloneNode(true);
+            svg.parentNode.replaceChild(fresh, svg);
+
             modal.classList.add('success-pulse');
             setTimeout(() => {
                 UI.hideModal('password-modal');
@@ -350,7 +366,7 @@ const App = {
                 } else {
                     this.openAddStrain();
                 }
-            }, 400);
+            }, 1400);
         } else {
             // Error animation
             modal.classList.remove('shake');

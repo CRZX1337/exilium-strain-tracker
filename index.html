@@ -120,14 +120,21 @@
         </button>
       </div>
       <div class="modal-body">
-        <div class="password-prompt">
+        <div class="password-prompt" id="password-prompt-inner">
+          <div class="login-icon">🔐</div>
           <p>Melde dich mit deinem Admin-Konto an.</p>
           <input type="email" id="admin-email" class="form-input" placeholder="E-Mail…"
-            onkeydown="if(event.key==='Enter')document.getElementById('admin-password').focus()" style="margin-bottom:8px">
+            onkeydown="if(event.key==='Enter')document.getElementById('admin-password').focus()">
           <input type="password" id="admin-password" class="form-input" placeholder="Passwort…"
             onkeydown="if(event.key==='Enter')App.submitPassword()">
           <p class="password-error">Ungültige Anmeldedaten</p>
-          <button class="btn btn-primary" onclick="App.submitPassword()" style="margin-top:8px">Anmelden</button>
+          <button class="btn btn-primary btn-login" id="login-btn" onclick="App.submitPassword()">Anmelden</button>
+        </div>
+        <div class="login-success" id="login-success">
+          <div class="success-checkmark">
+            <svg viewBox="0 0 52 52"><circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/><path class="checkmark-check" fill="none" d="M14 27 l8 8 l16-16"/></svg>
+          </div>
+          <p class="success-text">Willkommen zurück!</p>
         </div>
       </div>
     </div>

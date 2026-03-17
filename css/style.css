@@ -1072,34 +1072,117 @@ body::before {
     color: var(--star);
 }
 
-/* --- Password Prompt --- */
+/* --- Password / Login Prompt --- */
 .password-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 8px 0 4px;
+}
+
+.login-icon {
+    font-size: 2.5rem;
     text-align: center;
-    padding: 20px 0;
+    line-height: 1;
+    margin-bottom: 4px;
+    animation: floatIcon 3s ease-in-out infinite;
 }
 
 .password-prompt p {
     color: var(--text-secondary);
-    margin-bottom: 16px;
     font-size: 0.9rem;
+    text-align: center;
+    margin: 0;
 }
 
+/* Override generic form-input centering so all fields share full width */
 .password-prompt .form-input {
-    max-width: 300px;
-    margin: 0 auto 16px;
-    text-align: center;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    text-align: left;
+    box-sizing: border-box;
 }
 
 .password-error {
     color: var(--danger);
     font-size: 0.8rem;
-    margin-top: 8px;
+    text-align: center;
     display: none;
+    margin: 0;
 }
 
 .password-error.show {
     display: block;
 }
+
+.btn-login {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.95rem;
+    padding: 13px 20px;
+    letter-spacing: 0.02em;
+}
+
+/* --- Login Success Overlay --- */
+.login-success {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 20px 0 12px;
+}
+
+.login-success.visible {
+    display: flex;
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.success-checkmark svg {
+    width: 72px;
+    height: 72px;
+    display: block;
+}
+
+.checkmark-circle {
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-linecap: round;
+    animation: drawCircle 0.5s cubic-bezier(0.65, 0, 0.45, 1) 0.1s forwards;
+}
+
+.checkmark-check {
+    stroke: var(--accent);
+    stroke-width: 3;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    animation: drawCheck 0.4s cubic-bezier(0.65, 0, 0.45, 1) 0.55s forwards;
+}
+
+.success-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-align: center;
+    letter-spacing: 0.01em;
+    opacity: 0;
+    animation: fadeInUp 0.4s ease-out 0.8s forwards;
+}
+
+@keyframes drawCircle {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes drawCheck {
+    to { stroke-dashoffset: 0; }
+}
+
 
 /* --- Toast Notification --- */
 .toast-container {
@@ -1464,6 +1547,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 input[type=number] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 /* --- Custom File Upload --- */
