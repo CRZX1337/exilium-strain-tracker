@@ -37,6 +37,8 @@
     --danger: #ef4444;
     --danger-hover: #f87171;
 
+    --info: #3b82f6;
+
     --star: #f59e0b;
     --star-empty: #2a2a3d;
 
@@ -1225,6 +1227,10 @@ body::before {
 
 .toast.error {
     border-left: 3px solid var(--danger);
+}
+
+.toast.info {
+    border-left: 3px solid var(--info);
 }
 
 /* --- Detail Modal --- */
