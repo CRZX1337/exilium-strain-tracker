@@ -266,7 +266,9 @@ const App = {
                 s.name.toLowerCase().includes(query) ||
                 (s.effects && s.effects.toLowerCase().includes(query)) ||
                 (s.notes && s.notes.toLowerCase().includes(query)) ||
-                (s.taste && s.taste.toLowerCase().includes(query))
+                (s.taste && s.taste.toLowerCase().includes(query)) ||
+                (s.medical_name && s.medical_name.toLowerCase().includes(query)) ||
+                (s.importer && s.importer.toLowerCase().includes(query))
             );
         }
 
