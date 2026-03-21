@@ -2930,10 +2930,52 @@ textarea,
 }
 
 .checkbox-text {
-    user-select: none;
+user-select: none;
 }
 
 /* --- Header button visibility - prevent flash before auth check --- */
 #add-strain-btn {
-    display: none;
+display: none;
+}
+
+/* --- Search clear button --- */
+.search-clear-btn {
+position: absolute;
+right: 12px;
+top: 50%;
+transform: translateY(-50%);
+background: none;
+border: none;
+padding: 4px;
+cursor: pointer;
+color: var(--text-secondary);
+opacity: 0;
+visibility: hidden;
+transition: all 0.2s ease;
+display: flex;
+align-items: center;
+justify-content: center;
+width: 24px;
+height: 24px;
+border-radius: var(--radius-full);
+}
+
+.search-clear-btn:hover {
+background: var(--bg-glass);
+color: var(--text-primary);
+}
+
+.search-clear-btn.visible {
+opacity: 1;
+visibility: visible;
+}
+
+.search-clear-btn svg {
+width: 16px;
+height: 16px;
+}
+
+/* Adjust search input padding for clear button */
+#search-input {
+padding-right: 40px;
 }

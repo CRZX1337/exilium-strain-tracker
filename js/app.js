@@ -194,10 +194,22 @@ const App = {
     // --- Bind event listeners ---
     bindEvents() {
         // Search
-        document.getElementById('search-input').addEventListener('input', () => {
+        const searchInput = document.getElementById('search-input');
+        const clearBtn = document.getElementById('search-clear-btn');
+        
+        searchInput.addEventListener('input', () => {
             this.applyFilters();
             this.syncUrlFromFilters();
+            // Toggle clear button visibility
+            if (clearBtn) {
+                clearBtn.classList.toggle('visible', searchInput.value.length > 0);
+            }
         });
+
+        // Show clear button if search has content on init
+        if (clearBtn && searchInput.value.length > 0) {
+            clearBtn.classList.add('visible');
+        }
 
         // Filters
         document.getElementById('filter-type').addEventListener('change', () => {
@@ -262,6 +274,20 @@ const App = {
         });
     },
 
+    /** Bind activity log click handlers via event delegation */
+    bindActivityLogEvents() {
+        const list = document.getElementById('admin-activity-list');
+        if (!list) return;
+
+        list.addEventListener('click', (e) => {
+            const item = e.target.closest('[data-activity-id]');
+            if (!item) return;
+
+            const logId = item.dataset.activityId;
+            this.showActivityDetail(logId);
+        });
+    },
+
     // --- Apply search and filters ---
     applyFilters() {
         const query = document.getElementById('search-input').value.toLowerCase().trim();
@@ -306,6 +332,21 @@ const App = {
 
         this.filteredStrains = results;
         UI.renderStrains(results);
+    },
+
+    /** Clear search input and reset filters */
+    clearSearch() {
+        const searchInput = document.getElementById('search-input');
+        const clearBtn = document.getElementById('search-clear-btn');
+        
+        searchInput.value = '';
+        if (clearBtn) {
+            clearBtn.classList.remove('visible');
+        }
+        
+        this.applyFilters();
+        this.syncUrlFromFilters();
+        searchInput.focus();
     },
 
     // --- Admin auth (delegated to Supabase Auth) ---
@@ -886,6 +927,7 @@ const App = {
             await this.loadAdminImages();
         } else if (tabName === 'activity') {
             await this.loadAdminActivity();
+            this.bindActivityLogEvents(); // Bind click handlers for activity items
         }
     },
 
@@ -1348,152 +1390,6 @@ const App = {
         }
     },
 
-    /** Load activity logs for admin panel */
-    async loadAdminActivity() {
-        const list = document.getElementById('admin-activity-list');
-        const statsEl = document.getElementById('activity-stats');
-        if (!list) return;
-
-        list.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-
-        try {
-            const { data, error } = await db
-                .from('activity_logs')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(100);
-
-            if (error) throw error;
-
-            this.adminActivity = data || [];
-            
-            // Update stats
-            if (statsEl) {
-                const total = this.adminActivity.length;
-                document.getElementById('total-activities').textContent = `${total} Einträge`;
-            }
-
-            this.renderAdminActivity();
-        } catch (err) {
-            console.error('Error loading activity logs:', err);
-            list.innerHTML = '<p class="empty-state">Fehler beim Laden des Aktivitäts-Logs</p>';
-        }
-    },
-
-    /** Render activity logs in admin panel */
-    renderAdminActivity() {
-        const list = document.getElementById('admin-activity-list');
-        
-        if (!this.adminActivity || this.adminActivity.length === 0) {
-            list.innerHTML = '<p class="empty-state">Noch keine Aktivitäten aufgezeichnet</p>';
-            return;
-        }
-
-        const actionLabels = {
-            create: { icon: '✚', label: 'Hinzugefügt', class: 'create' },
-            update: { icon: '✎', label: 'Bearbeitet', class: 'update' },
-            delete: { icon: '🗑', label: 'Gelöscht', class: 'delete' },
-            privacy_toggle: { icon: '🔒', label: 'Sichtbarkeit', class: 'privacy' },
-            login: { icon: '🔑', label: 'Login', class: 'login' },
-            logout: { icon: '🚪', label: 'Logout', class: 'logout' }
-        };
-
-        list.innerHTML = this.adminActivity.map(log => {
-            const action = actionLabels[log.action_type] || { icon: '?', label: log.action_type, class: '' };
-            const date = new Date(log.created_at).toLocaleString('de-DE', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            const userEmail = log.user_email || 'Unbekannt';
-            
-            return `
-                <div class="admin-list-item activity-log ${action.class}" onclick="App.showActivityDetail('${log.id}')" style="cursor:pointer">
-                    <div class="activity-icon" title="${action.label}">${action.icon}</div>
-                    <div class="admin-item-info activity-info">
-                        <div class="admin-item-title">${this.escapeHtml(log.strain_name || '—')}</div>
-                        <div class="admin-item-meta">
-                            <span class="action-badge ${action.class}">${action.label}</span>
-                            <span>von ${this.escapeHtml(userEmail)}</span>
-                            <span>${date}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    },
-
-    /** Show activity detail modal */
-    showActivityDetail(logId) {
-        const log = this.adminActivity?.find(l => l.id === logId);
-        if (!log) return;
-
-        const actionLabels = {
-            create: { icon: '✚', label: 'Hinzugefügt', class: 'create' },
-            update: { icon: '✎', label: 'Bearbeitet', class: 'update' },
-            delete: { icon: '🗑', label: 'Gelöscht', class: 'delete' },
-            privacy_toggle: { icon: '🔒', label: 'Sichtbarkeit geändert', class: 'privacy' },
-            login: { icon: '🔑', label: 'Login', class: 'login' },
-            logout: { icon: '🚪', label: 'Logout', class: 'logout' }
-        };
-
-        const action = actionLabels[log.action_type] || { icon: '?', label: log.action_type, class: '' };
-        const date = new Date(log.created_at).toLocaleString('de-DE', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-
-        let detailsHtml = '';
-        if (log.details && Object.keys(log.details).length > 0) {
-            if (log.action_type === 'privacy_toggle') {
-                detailsHtml = `
-                    <div class="detail-section">
-                        <h4>Änderung</h4>
-                        <p>Vorher: ${log.details.previous_state ? '🔒 Privat' : '🌐 Öffentlich'}</p>
-                        <p>Nachher: ${log.details.new_state ? '🔒 Privat' : '🌐 Öffentlich'}</p>
-                    </div>
-                `;
-            } else if (['create', 'update'].includes(log.action_type) && log.details.changes) {
-                const changes = Object.entries(log.details.changes)
-                    .map(([key, val]) => `<p><strong>${key}:</strong> ${val || '—'}</p>`)
-                    .join('');
-                detailsHtml = changes ? `<div class="detail-section"><h4>Geänderte Felder</h4>${changes}</div>` : '';
-            } else {
-                const details = Object.entries(log.details)
-                    .map(([key, val]) => `<p><strong>${key}:</strong> ${typeof val === 'object' ? JSON.stringify(val) : val}</p>`)
-                    .join('');
-                detailsHtml = details ? `<div class="detail-section"><h4>Details</h4>${details}</div>` : '';
-            }
-        }
-
-        const content = document.getElementById('activity-detail-content');
-        content.innerHTML = `
-            <div class="activity-detail">
-                <div class="activity-header ${action.class}">
-                    <div class="activity-icon-large">${action.icon}</div>
-                    <div class="activity-title">
-                        <h3>${action.label}</h3>
-                        <p class="activity-strain">${this.escapeHtml(log.strain_name || '—')}</p>
-                    </div>
-                </div>
-                <div class="activity-meta">
-                    <p><strong>Benutzer:</strong> ${this.escapeHtml(log.user_email || 'Unbekannt')}</p>
-                    <p><strong>Zeitpunkt:</strong> ${date}</p>
-                    ${log.strain_id ? `<p><strong>Sorten-ID:</strong> <code>${log.strain_id}</code></p>` : ''}
-                </div>
-                ${detailsHtml}
-            </div>
-        `;
-
-        UI.showModal('activity-detail-modal');
-    },
-
     // --- Activity Pagination & Filtering ---
 
     activityPagination: {
@@ -1628,7 +1524,7 @@ const App = {
             logout: { icon: '🚪', label: 'Logout', class: 'logout' }
         };
 
-        const html = this.adminActivity.slice(append ? -(this.adminActivity.length % this.activityPagination.pageSize || this.activityPagination.pageSize) : 0).map(log => {
+        const html = this.adminActivity.slice(append ? -data.length : 0).map(log => {
             const action = actionLabels[log.action_type] || { icon: '?', label: log.action_type, class: '' };
             const date = new Date(log.created_at).toLocaleString('de-DE', {
                 day: '2-digit',
@@ -1640,7 +1536,7 @@ const App = {
             const userEmail = log.user_email || 'Unbekannt';
             
             return `
-                <div class="admin-list-item activity-log ${action.class}" onclick="App.showActivityDetail('${log.id}')" style="cursor:pointer">
+                <div class="admin-list-item activity-log ${action.class}" data-activity-id="${log.id}" style="cursor:pointer">
                     <div class="activity-icon" title="${action.label}">${action.icon}</div>
                     <div class="admin-item-info activity-info">
                         <div class="admin-item-title">${this.escapeHtml(log.strain_name || '—')}</div>
