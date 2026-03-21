@@ -133,6 +133,12 @@ const Auth = {
                     addBtn.classList.add('btn-primary');
                 }
             }
+
+            // Toggle logout button visibility (show when authenticated)
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
+            }
         }
     },
 };

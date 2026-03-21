@@ -407,7 +407,6 @@ const App = {
 
     // --- Save strain (add or edit) ---
     async saveStrain() {
-        const form = document.getElementById('strain-form');
         const submitBtn = document.getElementById('submit-strain-btn');
         const name = document.getElementById('strain-name').value.trim();
         const type = document.getElementById('strain-type').value;

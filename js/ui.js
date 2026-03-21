@@ -7,11 +7,14 @@ const UI = {
   renderStrains(strains) {
     const grid = document.getElementById('strain-grid');
     if (!strains || strains.length === 0) {
+      const msg = Auth?.isAuthenticated 
+        ? 'Füge deine erste Sorte hinzu, um deine Sammlung zu starten.' 
+        : 'Noch keine Sorten eingetragen.';
       grid.innerHTML = `
         <div class="empty-state">
           <img src="logo-transparent.png" alt="" class="empty-state-logo">
           <h3>Keine Sorten eingetragen</h3>
-          <p>Füge deine erste Sorte hinzu, um deine Sammlung zu starten.</p>
+          <p>${msg}</p>
         </div>
       `;
       return;
