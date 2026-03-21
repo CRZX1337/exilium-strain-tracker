@@ -420,7 +420,7 @@ export const StrainManager = {
                 }
                 
                 const fileExt = file.name.split('.').pop();
-                const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+                const fileName = `${ImageManager.generateUUID()}.${fileExt}`;
 
                 UI.showToast('Lade Bild hoch...', 'info');
 
