@@ -2,7 +2,7 @@
   <img src="logo-transparent.webp" width="100" alt="Exilium Logo">
 </p>
 
-<h1 align="center">🌿 Exilium Tracker</h1>
+<h1 align="center">Exilium Tracker</h1>
 
 <p align="center">
   <a href="https://exilium.space">🚀 Live</a>
