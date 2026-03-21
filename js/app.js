@@ -84,18 +84,27 @@ const App = {
     // ==========================================
 
     bindEvents() {
+        // Debounce helper for search input
+        function debounce(fn, delay) {
+            let timer;
+            return function(...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, args), delay);
+            };
+        }
+
         // Search
         const searchInput = document.getElementById('search-input');
         const clearBtn = document.getElementById('search-clear-btn');
         
-        searchInput.addEventListener('input', () => {
+        searchInput.addEventListener('input', debounce(() => {
             StrainManager.applyFilters();
             StrainManager.syncUrlFromFilters();
             // Toggle clear button visibility
             if (clearBtn) {
                 clearBtn.classList.toggle('visible', searchInput.value.length > 0);
             }
-        });
+        }, 200));
 
         // Show clear button if search has content on init
         if (clearBtn && searchInput.value.length > 0) {
