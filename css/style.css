@@ -701,6 +701,12 @@ body::before {
     line-height: 1.3;
 }
 
+.strain-medical-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .strain-type-badge {
     display: inline-flex;
     align-items: center;
@@ -1259,7 +1265,7 @@ body::before {
 
 .detail-meta-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
     gap: 16px;
     padding: 16px;
     background: var(--bg-glass);
