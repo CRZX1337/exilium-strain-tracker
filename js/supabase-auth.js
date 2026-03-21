@@ -2,7 +2,12 @@
 // Supabase Authentication Module
 // ==========================================
 
-const Auth = {
+import { db } from './supabase-config.js';
+import { UI } from './ui.js';
+import { state } from './modules/state.js';
+import { AdminPanel } from './modules/adminPanel.js';
+
+export const Auth = {
     /** Current authenticated user (null if logged out) */
     user: null,
 
@@ -40,7 +45,7 @@ const Auth = {
 
         // If this was an invite link, force password setup
         if (isInvite && this.user) {
-            this._pendingPasswordSetup = true;
+            state._pendingPasswordSetup = true;
             // Clear the URL hash
             window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
             setTimeout(() => this.showPasswordSetup(), 300);
@@ -82,7 +87,7 @@ const Auth = {
 
             UI.showToast('Passwort erfolgreich gesetzt!', 'success');
             UI.hideModal('setup-password-modal');
-            this._pendingPasswordSetup = false;
+            state._pendingPasswordSetup = false;
         } catch (err) {
             console.error('Error setting password:', err);
             UI.showToast('Fehler: ' + err.message, 'error');
@@ -169,31 +174,30 @@ const Auth = {
      * Syncs isAdmin flag on the App object and updates UI affordances.
      */
     _onAuthChange() {
-        if (typeof App !== 'undefined') {
-            App.isAdmin = this.isOwner; // Only owner is admin
-            App.updateAdminButton();
+        // Update state
+        state.isAdmin = this.isOwner;
+        AdminPanel.updateAdminButton();
 
-            // Toggle login button visibility (show when NOT authenticated)
-            const loginBtn = document.getElementById('login-btn-header');
-            if (loginBtn) {
-                loginBtn.style.display = this.isAuthenticated ? 'none' : 'flex';
-            }
+        // Toggle login button visibility (show when NOT authenticated)
+        const loginBtn = document.getElementById('login-btn-header');
+        if (loginBtn) {
+            loginBtn.style.display = this.isAuthenticated ? 'none' : 'flex';
+        }
 
-            // Toggle + Neue Sorte button visibility (only show when authenticated)
-            const addBtn = document.getElementById('add-strain-btn');
-            if (addBtn) {
-                addBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
-                if (this.isAuthenticated) {
-                    addBtn.classList.remove('btn-secondary');
-                    addBtn.classList.add('btn-primary');
-                }
+        // Toggle + Neue Sorte button visibility (only show when authenticated)
+        const addBtn = document.getElementById('add-strain-btn');
+        if (addBtn) {
+            addBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
+            if (this.isAuthenticated) {
+                addBtn.classList.remove('btn-secondary');
+                addBtn.classList.add('btn-primary');
             }
+        }
 
-            // Toggle logout button visibility (show when authenticated)
-            const logoutBtn = document.getElementById('logout-btn');
-            if (logoutBtn) {
-                logoutBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
-            }
+        // Toggle logout button visibility (show when authenticated)
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
         }
     },
 };

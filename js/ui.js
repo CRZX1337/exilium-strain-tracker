@@ -2,7 +2,10 @@
 // UI Rendering Functions
 // ==========================================
 
-const UI = {
+import { Auth } from './supabase-auth.js';
+import { state } from './modules/state.js';
+
+export const UI = {
   // --- Render strain cards into the grid ---
   renderStrains(strains) {
     const grid = document.getElementById('strain-grid');
