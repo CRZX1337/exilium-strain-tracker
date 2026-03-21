@@ -331,6 +331,12 @@
             </svg>
             Bilder
           </button>
+          <button class="admin-tab" data-tab="activity" onclick="App.switchAdminTab('activity')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            Aktivität
+          </button>
         </div>
 
         <!-- Strains Tab -->
@@ -378,6 +384,19 @@
             </div>
           </div>
           <div id="admin-images-list" class="admin-images-grid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Activity Tab -->
+        <div id="admin-tab-activity" class="admin-tab-content">
+          <div class="admin-section-header">
+            <h3>Aktivitäts-Log</h3>
+            <div class="admin-stats" id="activity-stats">
+              <span id="total-activities">0 Einträge</span>
+            </div>
+          </div>
+          <div id="admin-activity-list" class="admin-list">
             <!-- Populated by JS -->
           </div>
         </div>

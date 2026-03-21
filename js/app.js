@@ -483,6 +483,10 @@ const App = {
                 if (error) throw error;
                 UI.showToast('Sorte aktualisiert');
 
+                // Log activity
+                const updatedStrain = { ...strainData, id: this.editingId };
+                this.logActivity('update', updatedStrain);
+
                 // Update local state to avoid full reload
                 const index = this.strains.findIndex(s => s.id === this.editingId);
                 if (index !== -1) {
@@ -503,6 +507,9 @@ const App = {
                     const newStrain = data[0];
                     newStrain._isNew = true; // Set highlight flag for UI
                     this.strains.unshift(newStrain);
+                    
+                    // Log activity
+                    this.logActivity('create', newStrain);
                 }
             }
 
@@ -600,6 +607,9 @@ const App = {
         const strain = this.strains.find(s => s.id === id);
         if (!strain) return;
 
+        // Capture strain data before deletion for activity log
+        const strainCopy = { ...strain };
+
         if (!confirm(`"${strain.name}" wirklich löschen?`)) return;
 
         // Animate removal first
@@ -621,6 +631,9 @@ const App = {
 
             if (error) throw error;
             UI.showToast('Sorte gelöscht');
+            
+            // Log activity
+            this.logActivity('delete', strainCopy);
 
             // Remove from local state
             this.strains = this.strains.filter(s => s.id !== id);
@@ -821,6 +834,8 @@ const App = {
             await this.loadAdminUsers();
         } else if (tabName === 'images') {
             await this.loadAdminImages();
+        } else if (tabName === 'activity') {
+            await this.loadAdminActivity();
         }
     },
 
@@ -995,7 +1010,7 @@ const App = {
             const createdDate = new Date(user.created_at).toLocaleDateString('de-DE');
             const lastSignIn = user.last_sign_in_at 
                 ? new Date(user.last_sign_in_at).toLocaleDateString('de-DE')
-                : 'Nie';
+                : '<em style="color:var(--text-secondary)">Noch nie eingeloggt</em>';
 
             return `
                 <div class="admin-list-item">
@@ -1201,6 +1216,112 @@ const App = {
             console.error('Error deleting image:', err);
             UI.showToast('Fehler beim Löschen', 'error');
         }
+    },
+
+    // --- Activity Logging ---
+
+    /**
+     * Log an activity to the activity_logs table
+     * @param {string} actionType - 'create', 'update', or 'delete'
+     * @param {object} strain - The strain object
+     * @param {object} details - Additional details (optional)
+     */
+    async logActivity(actionType, strain, details = null) {
+        if (!Auth.isAuthenticated) return;
+        
+        try {
+            const activityData = {
+                action_type: actionType,
+                strain_id: strain.id || null,
+                strain_name: strain.name || strain.medical_name || 'Unnamed',
+                user_id: Auth.user?.id || null,
+                user_email: Auth.user?.email || null,
+                details: details
+            };
+
+            // Don't await - fire and forget to not slow down the UI
+            db.from('activity_logs')
+                .insert([activityData])
+                .then(({ error }) => {
+                    if (error) console.error('Error logging activity:', error);
+                });
+        } catch (err) {
+            console.error('Error logging activity:', err);
+        }
+    },
+
+    /** Load activity logs for admin panel */
+    async loadAdminActivity() {
+        const list = document.getElementById('admin-activity-list');
+        const statsEl = document.getElementById('activity-stats');
+        if (!list) return;
+
+        list.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+        try {
+            const { data, error } = await db
+                .from('activity_logs')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(100);
+
+            if (error) throw error;
+
+            this.adminActivity = data || [];
+            
+            // Update stats
+            if (statsEl) {
+                const total = this.adminActivity.length;
+                document.getElementById('total-activities').textContent = `${total} Einträge`;
+            }
+
+            this.renderAdminActivity();
+        } catch (err) {
+            console.error('Error loading activity logs:', err);
+            list.innerHTML = '<p class="empty-state">Fehler beim Laden des Aktivitäts-Logs</p>';
+        }
+    },
+
+    /** Render activity logs in admin panel */
+    renderAdminActivity() {
+        const list = document.getElementById('admin-activity-list');
+        
+        if (!this.adminActivity || this.adminActivity.length === 0) {
+            list.innerHTML = '<p class="empty-state">Noch keine Aktivitäten aufgezeichnet</p>';
+            return;
+        }
+
+        const actionLabels = {
+            create: { icon: '✚', label: 'Hinzugefügt', class: 'create' },
+            update: { icon: '✎', label: 'Bearbeitet', class: 'update' },
+            delete: { icon: '🗑', label: 'Gelöscht', class: 'delete' }
+        };
+
+        list.innerHTML = this.adminActivity.map(log => {
+            const action = actionLabels[log.action_type] || { icon: '?', label: log.action_type, class: '' };
+            const date = new Date(log.created_at).toLocaleString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            const userEmail = log.user_email || 'Unbekannt';
+            
+            return `
+                <div class="admin-list-item activity-log ${action.class}">
+                    <div class="activity-icon" title="${action.label}">${action.icon}</div>
+                    <div class="admin-item-info activity-info">
+                        <div class="admin-item-title">${this.escapeHtml(log.strain_name)}</div>
+                        <div class="admin-item-meta">
+                            <span class="action-badge ${action.class}">${action.label}</span>
+                            <span>von ${this.escapeHtml(userEmail)}</span>
+                            <span>${date}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 };
 
