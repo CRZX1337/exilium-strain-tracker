@@ -117,6 +117,7 @@ const App = {
         this.applyUrlState();
         UI.initCustomCursor();
         this.bindEvents();
+        this.initContextMenu();
 
         if (urlState.strainSlug) {
             const strain = this.getStrainBySlug(urlState.strainSlug);
@@ -144,9 +145,6 @@ const App = {
                 }
             }
         });
-
-        // Disable right-click context menu globally
-        document.addEventListener('contextmenu', event => event.preventDefault());
 
         // Enforce a minimum 400ms display time for the startup loader to look premium
         const loadEnd = Date.now();
@@ -862,6 +860,150 @@ const App = {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    },
+
+    initContextMenu() {
+        const menu = document.getElementById('context-menu');
+        if (!menu) return;
+
+        // Helper: build and show menu
+        const show = (x, y, items) => {
+            menu.innerHTML = items.map(item => {
+                if (item === 'separator') {
+                    return '<div class="context-menu-separator"></div>';
+                }
+                return `
+                    <button class="context-menu-item ${item.cls || ''}" 
+                            data-action="${item.action}">
+                        <span class="ctx-icon">${item.icon}</span>
+                        ${item.label}
+                    </button>`;
+            }).join('');
+
+            // Position menu — keep inside viewport
+            menu.classList.remove('visible');
+            menu.style.left = '0px';
+            menu.style.top = '0px';
+            menu.classList.add('visible');
+
+            const menuW = menu.offsetWidth;
+            const menuH = menu.offsetHeight;
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+
+            menu.style.left = (x + menuW > vw ? vw - menuW - 8 : x) + 'px';
+            menu.style.top = (y + menuH > vh ? vh - menuH - 8 : y) + 'px';
+
+            // Wire up item clicks
+            menu.querySelectorAll('.context-menu-item').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const action = btn.dataset.action;
+                    this._handleContextAction(action);
+                    hide();
+                });
+            });
+        };
+
+        const hide = () => {
+            menu.classList.remove('visible');
+            this._contextTarget = null;
+        };
+
+        // Right-click handler
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+
+            // Check if on a strain card
+            const card = e.target.closest('.strain-card');
+            const isImage = e.target.closest('.strain-image, .strain-image-container');
+
+            if (card) {
+                const strainId = card.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+                this._contextTarget = { type: 'card', strainId };
+                const strain = this.strains.find(s => s.id === strainId);
+
+                const items = [
+                    { icon: '👁️', label: 'Details anzeigen', action: 'view', cls: 'accent' },
+                    { icon: '🔗', label: 'Link kopieren', action: 'copy-link' },
+                    { icon: '📋', label: 'Med. Name kopieren', action: 'copy-medical' },
+                ];
+
+                if (isImage) {
+                    items.push('separator');
+                    items.push({ icon: '🔍', label: 'Bild vergrößern', action: 'zoom-image' });
+                }
+
+                if (Auth.isAuthenticated) {
+                    items.push('separator');
+                    items.push({ icon: '✏️', label: 'Bearbeiten', action: 'edit' });
+                    items.push({ icon: '🗑️', label: 'Löschen', action: 'delete', cls: 'danger' });
+                }
+
+                show(e.clientX, e.clientY, items);
+            } else {
+                // Background context menu
+                this._contextTarget = { type: 'background' };
+                const items = [
+                    { icon: '🔄', label: 'Aktualisieren', action: 'refresh', cls: 'accent' },
+                    { icon: '🔝', label: 'Nach oben scrollen', action: 'scroll-top' },
+                ];
+                if (Auth.isAuthenticated) {
+                    items.push('separator');
+                    items.push({ icon: '➕', label: 'Neue Sorte', action: 'add-strain', cls: 'accent' });
+                }
+                show(e.clientX, e.clientY, items);
+            }
+        });
+
+        // Hide on click outside, scroll, or Escape
+        document.addEventListener('click', hide);
+        document.addEventListener('scroll', hide, { passive: true });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') hide();
+        });
+    },
+
+    _handleContextAction(action) {
+        const target = this._contextTarget;
+        const strain = target?.strainId
+            ? this.strains.find(s => s.id === target.strainId)
+            : null;
+
+        switch (action) {
+            case 'view':
+                if (strain) this.showDetail(strain.id);
+                break;
+            case 'copy-link':
+                if (strain) {
+                    const slug = this.getStrainSlug(strain);
+                    const url = `${window.location.origin}${window.location.pathname}?strain=${slug}`;
+                    navigator.clipboard.writeText(url);
+                    UI.showToast('Link kopiert!', 'success');
+                }
+                break;
+            case 'copy-medical':
+                if (strain?.medical_name) this.copyMedicalName(strain.medical_name);
+                break;
+            case 'zoom-image':
+                if (strain?.image_url) this.viewImage(strain.image_url);
+                break;
+            case 'edit':
+                if (strain) this.editStrain(strain.id);
+                break;
+            case 'delete':
+                if (strain) this.showDeleteStrainConfirm(strain.id);
+                break;
+            case 'refresh':
+                this.loadStrains();
+                UI.showToast('Sorten aktualisiert', 'success');
+                break;
+            case 'scroll-top':
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                break;
+            case 'add-strain':
+                this.openAddStrain();
+                break;
+        }
     },
 
     // --- Copy medical name to clipboard ---
