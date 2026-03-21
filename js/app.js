@@ -950,42 +950,33 @@ const App = {
         list.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
 
         try {
-            // Get users from Supabase Auth API using the admin method
-            const { data: { users }, error } = await db.auth.admin.listUsers();
-
-            if (error) {
-                // Fallback: if admin API not available, show current user info
-                if (Auth.user) {
-                    this.adminUsers = [{
-                        id: Auth.user.id,
-                        email: Auth.user.email,
-                        email_confirmed_at: Auth.user.email_confirmed_at,
-                        created_at: Auth.user.created_at,
-                        last_sign_in_at: Auth.user.last_sign_in_at
-                    }];
-                    this.renderAdminUsers();
-                    return;
-                }
-                throw error;
+            // Get current session for auth token
+            const { data: { session } } = await db.auth.getSession();
+            if (!session) {
+                throw new Error('Not authenticated');
             }
 
-            this.adminUsers = users || [];
+            // Call edge function to list users
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-users`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action: 'listUsers' })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to load users');
+            }
+
+            this.adminUsers = result.users || [];
             this.renderAdminUsers();
         } catch (err) {
             console.error('Error loading users:', err);
-            // Fallback: show current user only
-            if (Auth.user) {
-                this.adminUsers = [{
-                    id: Auth.user.id,
-                    email: Auth.user.email,
-                    email_confirmed_at: Auth.user.email_confirmed_at,
-                    created_at: Auth.user.created_at,
-                    last_sign_in_at: Auth.user.last_sign_in_at
-                }];
-                this.renderAdminUsers();
-            } else {
-                list.innerHTML = '<p class="empty-state">Benutzer konnten nicht geladen werden</p>';
-            }
+            list.innerHTML = '<p class="empty-state">Benutzer konnten nicht geladen werden: ' + this.escapeHtml(err.message) + '</p>';
         }
     },
 
@@ -1033,42 +1024,43 @@ const App = {
         UI.showModal('create-user-modal');
     },
 
-    /** Create new user */
+    /** Create new user by invitation */
     async createUser() {
         const email = document.getElementById('new-user-email').value.trim();
-        const password = document.getElementById('new-user-password').value;
 
-        if (!email || !password || password.length < 6) {
-            UI.showToast('Bitte gültige E-Mail und Passwort (min. 6 Zeichen) eingeben', 'error');
+        if (!email) {
+            UI.showToast('Bitte gültige E-Mail eingeben', 'error');
             return;
         }
 
         try {
-            // Try admin API first
-            const { data, error } = await db.auth.admin.createUser({
-                email,
-                password,
-                email_confirm: true
-            });
-
-            if (error) {
-                // Fallback: regular signup (user will need to confirm email)
-                const { error: signUpError } = await db.auth.signUp({
-                    email,
-                    password
-                });
-                
-                if (signUpError) throw signUpError;
-                
-                UI.showToast('Benutzer erstellt. E-Mail-Bestätigung erforderlich.', 'success');
-            } else {
-                UI.showToast('Benutzer erfolgreich erstellt', 'success');
+            // Get current session for auth token
+            const { data: { session } } = await db.auth.getSession();
+            if (!session) {
+                throw new Error('Not authenticated');
             }
 
+            // Call edge function to invite user
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-users`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action: 'inviteUser', email })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to invite user');
+            }
+
+            UI.showToast('Einladung erfolgreich gesendet! Der Benutzer erhält eine E-Mail zum Einrichten des Passworts.', 'success');
             UI.hideModal('create-user-modal');
             await this.loadAdminUsers();
         } catch (err) {
-            console.error('Error creating user:', err);
+            console.error('Error inviting user:', err);
             UI.showToast('Fehler: ' + err.message, 'error');
         }
     },
@@ -1078,9 +1070,27 @@ const App = {
         if (!confirm('Diesen Benutzer wirklich löschen?')) return;
 
         try {
-            const { error } = await db.auth.admin.deleteUser(userId);
+            // Get current session for auth token
+            const { data: { session } } = await db.auth.getSession();
+            if (!session) {
+                throw new Error('Not authenticated');
+            }
 
-            if (error) throw error;
+            // Call edge function to delete user
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-users`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action: 'deleteUser', userId })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to delete user');
+            }
 
             UI.showToast('Benutzer gelöscht', 'success');
             await this.loadAdminUsers();
