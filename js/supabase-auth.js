@@ -11,37 +11,26 @@ const Auth = {
      * Call this once before App.init() completes.
      */
     async init() {
-        // Check for invite/recovery token in URL first
-        const url = new URL(window.location.href);
-        const token = url.hash.match(/access_token=([^&]*)/)?.[1];
-        const type = url.hash.match(/type=([^&]*)/)?.[1];
+        // Check URL hash BEFORE Supabase processes it
+        const hash = window.location.hash;
+        const isInvite = hash.includes('type=invite') || hash.includes('invite');
         
-        if (token && type === 'invite') {
-            // Handle invite token - exchange for session
-            const { data, error } = await db.auth.exchangeCodeForSession(token);
-            if (!error && data.session) {
-                this.user = data.session.user;
-                // Clear the hash and show password setup
-                window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-                this._pendingPasswordSetup = true;
-            }
-        }
-
-        // Restore any existing session (if not already set from invite)
-        if (!this.user) {
-            const { data: { session } } = await db.auth.getSession();
-            this.user = session?.user ?? null;
-        }
+        // Restore any existing session (this also processes invite tokens in URL)
+        const { data: { session } } = await db.auth.getSession();
+        this.user = session?.user ?? null;
 
         // Listen for sign-in / sign-out events
-        db.auth.onAuthStateChange((_event, session) => {
+        db.auth.onAuthStateChange((event, session) => {
             this.user = session?.user ?? null;
             this._onAuthChange();
         });
 
-        // Check if we need to show password setup
-        if (this._pendingPasswordSetup) {
-            setTimeout(() => this.showPasswordSetup(), 500);
+        // If this was an invite link, force password setup
+        if (isInvite && this.user) {
+            this._pendingPasswordSetup = true;
+            // Clear the URL hash
+            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+            setTimeout(() => this.showPasswordSetup(), 300);
         }
     },
 
