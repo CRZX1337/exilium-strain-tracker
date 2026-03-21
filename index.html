@@ -406,6 +406,31 @@
     </div>
   </div>
 
+  <!-- ===== SETUP PASSWORD MODAL (for invited users) ===== -->
+  <div id="setup-password-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">🔐 Passwort einrichten</h2>
+      </div>
+      <div class="modal-body">
+        <p class="form-hint" style="margin-bottom: 1rem;">Willkommen! Bitte setze ein Passwort für deinen Account.</p>
+        <form id="setup-password-form" onsubmit="event.preventDefault(); Auth.completePasswordSetup();">
+          <div class="form-group">
+            <label class="form-label" for="setup-password">Neues Passwort *</label>
+            <input type="password" id="setup-password" class="form-input" placeholder="Mindestens 6 Zeichen" minlength="6" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="setup-password-confirm">Passwort bestätigen *</label>
+            <input type="password" id="setup-password-confirm" class="form-input" placeholder="Passwort wiederholen" minlength="6" required>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Passwort speichern</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== TOAST CONTAINER ===== -->
   <div id="toast-container" class="toast-container"></div>
 
