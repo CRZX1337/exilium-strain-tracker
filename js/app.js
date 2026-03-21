@@ -148,10 +148,10 @@ const App = {
         // Disable right-click context menu globally
         document.addEventListener('contextmenu', event => event.preventDefault());
 
-        // Enforce a minimum 2s display time for the startup loader to look premium
+        // Enforce a minimum 400ms display time for the startup loader to look premium
         const loadEnd = Date.now();
         const loadTime = loadEnd - loadStart;
-        const minLoaderTime = 2000;
+        const minLoaderTime = 400;
         const remainingTime = Math.max(0, minLoaderTime - loadTime);
 
         setTimeout(() => {
