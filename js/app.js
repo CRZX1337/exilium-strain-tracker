@@ -935,12 +935,22 @@ const App = {
 
             if (error) throw error;
 
+            // Log privacy toggle activity
+            const strain = this.adminStrains.find(s => s.id === strainId) || this.strains.find(s => s.id === strainId);
+            if (strain) {
+                this.logActivity('privacy_toggle', strain, { 
+                    previous_state: !isPrivate, 
+                    new_state: isPrivate,
+                    is_private: isPrivate 
+                });
+            }
+            
             UI.showToast(isPrivate ? 'Sorte ist jetzt privat' : 'Sorte ist jetzt öffentlich', 'success');
             
             // Update local data and re-render
-            const strain = this.adminStrains.find(s => s.id === strainId);
-            if (strain) {
-                strain.is_private = isPrivate;
+            const adminStrain = this.adminStrains.find(s => s.id === strainId);
+            if (adminStrain) {
+                adminStrain.is_private = isPrivate;
             }
             this.renderAdminStrains();
             
@@ -1294,7 +1304,10 @@ const App = {
         const actionLabels = {
             create: { icon: '✚', label: 'Hinzugefügt', class: 'create' },
             update: { icon: '✎', label: 'Bearbeitet', class: 'update' },
-            delete: { icon: '🗑', label: 'Gelöscht', class: 'delete' }
+            delete: { icon: '🗑', label: 'Gelöscht', class: 'delete' },
+            privacy_toggle: { icon: '🔒', label: 'Sichtbarkeit', class: 'privacy' },
+            login: { icon: '🔑', label: 'Login', class: 'login' },
+            logout: { icon: '🚪', label: 'Logout', class: 'logout' }
         };
 
         list.innerHTML = this.adminActivity.map(log => {
@@ -1309,10 +1322,10 @@ const App = {
             const userEmail = log.user_email || 'Unbekannt';
             
             return `
-                <div class="admin-list-item activity-log ${action.class}">
+                <div class="admin-list-item activity-log ${action.class}" onclick="App.showActivityDetail('${log.id}')" style="cursor:pointer">
                     <div class="activity-icon" title="${action.label}">${action.icon}</div>
                     <div class="admin-item-info activity-info">
-                        <div class="admin-item-title">${this.escapeHtml(log.strain_name)}</div>
+                        <div class="admin-item-title">${this.escapeHtml(log.strain_name || '—')}</div>
                         <div class="admin-item-meta">
                             <span class="action-badge ${action.class}">${action.label}</span>
                             <span>von ${this.escapeHtml(userEmail)}</span>
@@ -1322,6 +1335,242 @@ const App = {
                 </div>
             `;
         }).join('');
+    },
+
+    /** Show activity detail modal */
+    showActivityDetail(logId) {
+        const log = this.adminActivity?.find(l => l.id === logId);
+        if (!log) return;
+
+        const actionLabels = {
+            create: { icon: '✚', label: 'Hinzugefügt', class: 'create' },
+            update: { icon: '✎', label: 'Bearbeitet', class: 'update' },
+            delete: { icon: '🗑', label: 'Gelöscht', class: 'delete' },
+            privacy_toggle: { icon: '🔒', label: 'Sichtbarkeit geändert', class: 'privacy' },
+            login: { icon: '🔑', label: 'Login', class: 'login' },
+            logout: { icon: '🚪', label: 'Logout', class: 'logout' }
+        };
+
+        const action = actionLabels[log.action_type] || { icon: '?', label: log.action_type, class: '' };
+        const date = new Date(log.created_at).toLocaleString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+
+        let detailsHtml = '';
+        if (log.details && Object.keys(log.details).length > 0) {
+            if (log.action_type === 'privacy_toggle') {
+                detailsHtml = `
+                    <div class="detail-section">
+                        <h4>Änderung</h4>
+                        <p>Vorher: ${log.details.previous_state ? '🔒 Privat' : '🌐 Öffentlich'}</p>
+                        <p>Nachher: ${log.details.new_state ? '🔒 Privat' : '🌐 Öffentlich'}</p>
+                    </div>
+                `;
+            } else if (['create', 'update'].includes(log.action_type) && log.details.changes) {
+                const changes = Object.entries(log.details.changes)
+                    .map(([key, val]) => `<p><strong>${key}:</strong> ${val || '—'}</p>`)
+                    .join('');
+                detailsHtml = changes ? `<div class="detail-section"><h4>Geänderte Felder</h4>${changes}</div>` : '';
+            } else {
+                const details = Object.entries(log.details)
+                    .map(([key, val]) => `<p><strong>${key}:</strong> ${typeof val === 'object' ? JSON.stringify(val) : val}</p>`)
+                    .join('');
+                detailsHtml = details ? `<div class="detail-section"><h4>Details</h4>${details}</div>` : '';
+            }
+        }
+
+        const content = document.getElementById('activity-detail-content');
+        content.innerHTML = `
+            <div class="activity-detail">
+                <div class="activity-header ${action.class}">
+                    <div class="activity-icon-large">${action.icon}</div>
+                    <div class="activity-title">
+                        <h3>${action.label}</h3>
+                        <p class="activity-strain">${this.escapeHtml(log.strain_name || '—')}</p>
+                    </div>
+                </div>
+                <div class="activity-meta">
+                    <p><strong>Benutzer:</strong> ${this.escapeHtml(log.user_email || 'Unbekannt')}</p>
+                    <p><strong>Zeitpunkt:</strong> ${date}</p>
+                    ${log.strain_id ? `<p><strong>Sorten-ID:</strong> <code>${log.strain_id}</code></p>` : ''}
+                </div>
+                ${detailsHtml}
+            </div>
+        `;
+
+        UI.showModal('activity-detail-modal');
+    },
+
+    // --- Activity Pagination & Filtering ---
+
+    activityPagination: {
+        page: 1,
+        pageSize: 50,
+        hasMore: false
+    },
+
+    /** Load activity logs with pagination */
+    async loadAdminActivity(loadMore = false) {
+        const list = document.getElementById('admin-activity-list');
+        const statsEl = document.getElementById('activity-stats');
+        const loadMoreBtn = document.getElementById('activity-load-more');
+        if (!list) return;
+
+        if (!loadMore) {
+            list.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            this.activityPagination.page = 1;
+        }
+
+        try {
+            const from = (this.activityPagination.page - 1) * this.activityPagination.pageSize;
+            const to = from + this.activityPagination.pageSize - 1;
+
+            let query = db
+                .from('activity_logs')
+                .select('*', { count: 'exact' })
+                .order('created_at', { ascending: false })
+                .range(from, to);
+
+            // Apply filters
+            const userFilter = document.getElementById('activity-filter-user')?.value;
+            const actionFilter = document.getElementById('activity-filter-action')?.value;
+
+            if (userFilter) {
+                query = query.eq('user_id', userFilter);
+            }
+            if (actionFilter) {
+                query = query.eq('action_type', actionFilter);
+            }
+
+            const { data, error, count } = await query;
+
+            if (error) throw error;
+
+            if (loadMore) {
+                this.adminActivity = [...(this.adminActivity || []), ...(data || [])];
+            } else {
+                this.adminActivity = data || [];
+            }
+
+            // Check if there are more entries
+            this.activityPagination.hasMore = data?.length === this.activityPagination.pageSize;
+            if (loadMoreBtn) {
+                loadMoreBtn.style.display = this.activityPagination.hasMore ? 'block' : 'none';
+            }
+            
+            // Update stats
+            if (statsEl) {
+                const total = count || this.adminActivity.length;
+                document.getElementById('total-activities').textContent = `${total} Einträge`;
+            }
+
+            // Update user filter options
+            this.updateActivityUserFilter();
+
+            this.renderAdminActivity(loadMore);
+        } catch (err) {
+            console.error('Error loading activity logs:', err);
+            if (!loadMore) {
+                list.innerHTML = '<p class="empty-state">Fehler beim Laden des Aktivitäts-Logs</p>';
+            }
+        }
+    },
+
+    /** Load more activity entries */
+    async loadMoreActivity() {
+        this.activityPagination.page++;
+        await this.loadAdminActivity(true);
+    },
+
+    /** Update user filter dropdown with unique users from loaded data */
+    updateActivityUserFilter() {
+        const select = document.getElementById('activity-filter-user');
+        if (!select || !this.adminActivity) return;
+
+        const currentValue = select.value;
+        const uniqueUsers = [...new Map(this.adminActivity.map(l => [l.user_id, l.user_email])).entries()]
+            .filter(([id]) => id);
+
+        // Keep "All users" option and add found users
+        const allOption = select.querySelector('option[value=""]');
+        select.innerHTML = '';
+        select.appendChild(allOption || new Option('Alle Benutzer', ''));
+
+        uniqueUsers.forEach(([id, email]) => {
+            if (id && email) {
+                select.appendChild(new Option(email, id));
+            }
+        });
+
+        select.value = currentValue;
+    },
+
+    /** Filter activity logs based on selected criteria */
+    filterAdminActivity() {
+        this.activityPagination.page = 1;
+        this.loadAdminActivity(false);
+    },
+
+    /** Render activity logs in admin panel */
+    renderAdminActivity(append = false) {
+        const list = document.getElementById('admin-activity-list');
+        
+        if (!this.adminActivity || this.adminActivity.length === 0) {
+            if (!append) {
+                list.innerHTML = '<p class="empty-state">Noch keine Aktivitäten aufgezeichnet</p>';
+            }
+            return;
+        }
+
+        if (!append) {
+            list.innerHTML = '';
+        }
+
+        const actionLabels = {
+            create: { icon: '✚', label: 'Hinzugefügt', class: 'create' },
+            update: { icon: '✎', label: 'Bearbeitet', class: 'update' },
+            delete: { icon: '🗑', label: 'Gelöscht', class: 'delete' },
+            privacy_toggle: { icon: '🔒', label: 'Sichtbarkeit', class: 'privacy' },
+            login: { icon: '🔑', label: 'Login', class: 'login' },
+            logout: { icon: '🚪', label: 'Logout', class: 'logout' }
+        };
+
+        const html = this.adminActivity.slice(append ? -(this.adminActivity.length % this.activityPagination.pageSize || this.activityPagination.pageSize) : 0).map(log => {
+            const action = actionLabels[log.action_type] || { icon: '?', label: log.action_type, class: '' };
+            const date = new Date(log.created_at).toLocaleString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            const userEmail = log.user_email || 'Unbekannt';
+            
+            return `
+                <div class="admin-list-item activity-log ${action.class}" onclick="App.showActivityDetail('${log.id}')" style="cursor:pointer">
+                    <div class="activity-icon" title="${action.label}">${action.icon}</div>
+                    <div class="admin-item-info activity-info">
+                        <div class="admin-item-title">${this.escapeHtml(log.strain_name || '—')}</div>
+                        <div class="admin-item-meta">
+                            <span class="action-badge ${action.class}">${action.label}</span>
+                            <span>von ${this.escapeHtml(userEmail)}</span>
+                            <span>${date}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (append) {
+            list.insertAdjacentHTML('beforeend', html);
+        } else {
+            list.innerHTML = html;
+        }
     }
 };
 

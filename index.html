@@ -55,7 +55,7 @@
             <path d="M2 12l10 5 10-5"/>
           </svg>
         </button>
-        <button id="logout-btn" class="btn btn-icon" onclick="Auth.signOut()" title="Abmelden" style="display:none">
+        <button id="logout-btn" class="btn btn-icon" onclick="Auth.showSignOutConfirm()" title="Abmelden" style="display:none">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
             <polyline points="16 17 21 12 16 7"/>
@@ -396,8 +396,27 @@
               <span id="total-activities">0 Einträge</span>
             </div>
           </div>
-          <div id="admin-activity-list" class="admin-list">
+          <div class="admin-filter activity-filter">
+            <select id="activity-filter-user" class="form-select" onchange="App.filterAdminActivity()">
+              <option value="">Alle Benutzer</option>
+            </select>
+            <select id="activity-filter-action" class="form-select" onchange="App.filterAdminActivity()">
+              <option value="">Alle Aktionen</option>
+              <option value="create">Hinzugefügt</option>
+              <option value="update">Bearbeitet</option>
+              <option value="delete">Gelöscht</option>
+              <option value="privacy_toggle">Sichtbarkeit</option>
+              <option value="login">Login</option>
+              <option value="logout">Logout</option>
+            </select>
+          </div>
+          <div id="admin-activity-list" class="admin-list activity-list">
             <!-- Populated by JS -->
+          </div>
+          <div class="activity-pagination">
+            <button id="activity-load-more" class="btn btn-secondary" onclick="App.loadMoreActivity()" style="display:none">
+              Ältere laden
+            </button>
           </div>
         </div>
       </div>
@@ -452,7 +471,46 @@
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">Passwort speichern</button>
           </div>
-        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LOGOUT CONFIRMATION MODAL ===== -->
+  <div id="logout-confirm-modal" class="modal-overlay">
+    <div class="modal modal-small">
+      <div class="modal-header">
+        <h2 class="modal-title">Abmelden?</h2>
+        <button class="modal-close" onclick="UI.hideModal('logout-confirm-modal')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="form-hint" style="margin-bottom: 1rem;">Möchtest du dich wirklich abmelden?</p>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="UI.hideModal('logout-confirm-modal')">Abbrechen</button>
+          <button type="button" class="btn btn-danger" onclick="Auth.confirmSignOut()">Abmelden</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ACTIVITY DETAIL MODAL ===== -->
+  <div id="activity-detail-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Aktivitätsdetails</h2>
+        <button class="modal-close" onclick="UI.hideModal('activity-detail-modal')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="activity-detail-content">
+        <!-- Populated by JS -->
       </div>
     </div>
   </div>

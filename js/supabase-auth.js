@@ -21,7 +21,16 @@ const Auth = {
 
         // Listen for sign-in / sign-out events
         db.auth.onAuthStateChange((event, session) => {
+            const previousUser = this.user;
             this.user = session?.user ?? null;
+            
+            // Log login/logout events
+            if (event === 'SIGNED_IN' && !previousUser) {
+                this.logAuthActivity('login');
+            } else if (event === 'SIGNED_OUT' && previousUser) {
+                this.logAuthActivity('logout');
+            }
+            
             this._onAuthChange();
         });
 
@@ -104,9 +113,48 @@ const Auth = {
         return { success: true };
     },
 
+    /** Show logout confirmation dialog */
+    showSignOutConfirm() {
+        UI.showModal('logout-confirm-modal');
+    },
+
+    /** Confirm and execute sign out */
+    async confirmSignOut() {
+        UI.hideModal('logout-confirm-modal');
+        await this.signOut();
+    },
+
     /** Sign out the current user */
     async signOut() {
         await db.auth.signOut();
+    },
+
+    /**
+     * Log authentication activity (login/logout)
+     * @param {string} action - 'login' or 'logout'
+     */
+    async logAuthActivity(action) {
+        if (!this.user) return;
+        
+        try {
+            const activityData = {
+                action_type: action,
+                strain_id: null,
+                strain_name: action === 'login' ? 'Login' : 'Logout',
+                user_id: this.user.id,
+                user_email: this.user.email,
+                details: { timestamp: new Date().toISOString() }
+            };
+
+            // Fire and forget
+            db.from('activity_logs')
+                .insert([activityData])
+                .then(({ error }) => {
+                    if (error) console.error('Error logging auth activity:', error);
+                });
+        } catch (err) {
+            console.error('Error logging auth activity:', err);
+        }
     },
 
     /**
