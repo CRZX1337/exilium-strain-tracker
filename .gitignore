@@ -27,5 +27,9 @@ prisma/
 *.db
 *.db-journal
 
+# Local config with real credentials
+js/config.local.js
+js/supabase-config.js
+
 
 

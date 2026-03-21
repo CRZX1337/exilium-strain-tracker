@@ -4,7 +4,6 @@
  */
 
 import { state } from './state.js';
-import { db, SUPABASE_URL } from '../supabase-config.js';
 import { UI } from '../ui.js';
 
 export const ImageManager = {

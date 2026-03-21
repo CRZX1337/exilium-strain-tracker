@@ -3,7 +3,6 @@
 // ==========================================
 
 import { state } from './modules/state.js';
-import { db } from './supabase-config.js';
 import { Auth } from './supabase-auth.js';
 import { UI } from './ui.js';
 import { StrainManager } from './modules/strainManager.js';

@@ -2,7 +2,6 @@
 // Supabase Authentication Module
 // ==========================================
 
-import { db } from './supabase-config.js';
 import { UI } from './ui.js';
 import { state } from './modules/state.js';
 import { AdminPanel } from './modules/adminPanel.js';
