@@ -866,6 +866,8 @@ const App = {
         const menu = document.getElementById('context-menu');
         if (!menu) return;
 
+        let justOpened = false;
+
         // Helper: build and show menu
         const show = (x, y, items) => {
             menu.innerHTML = items.map(item => {
@@ -902,9 +904,14 @@ const App = {
                     hide();
                 });
             });
+
+            // Set flag to prevent immediate hide
+            justOpened = true;
+            setTimeout(() => { justOpened = false; }, 100);
         };
 
         const hide = () => {
+            if (justOpened) return;
             menu.classList.remove('visible');
             this._contextTarget = null;
         };
@@ -956,8 +963,14 @@ const App = {
         });
 
         // Hide on click outside, scroll, or Escape
-        document.addEventListener('click', hide);
-        document.addEventListener('scroll', hide, { passive: true });
+        document.addEventListener('click', (e) => {
+            // Don't hide if clicking inside the menu
+            if (menu.contains(e.target)) return;
+            hide();
+        });
+        document.addEventListener('scroll', () => {
+            if (!justOpened) hide();
+        }, { passive: true });
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') hide();
         });

@@ -3055,3 +3055,87 @@ padding-right: 40px;
         min-height: 44px;
     }
 }
+
+/* --- Custom Context Menu --- */
+.context-menu {
+    position: fixed;
+    z-index: 99999;
+    min-width: 200px;
+    background: rgba(13, 13, 20, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-md);
+    padding: 6px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.95) translateY(-4px);
+    transform-origin: top left;
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    pointer-events: none;
+}
+
+.context-menu.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1) translateY(0);
+    pointer-events: all;
+}
+
+.context-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    user-select: none;
+    white-space: nowrap;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+}
+
+.context-menu-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+}
+
+.context-menu-item.accent:hover {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--accent);
+}
+
+.context-menu-item.danger {
+    color: var(--danger);
+}
+
+.context-menu-item.danger:hover {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--danger-hover);
+}
+
+.context-menu-item .ctx-icon {
+    font-size: 15px;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.context-menu-separator {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.07);
+    margin: 4px 6px;
+}
+
+/* Disable on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .context-menu { display: none !important; }
+}
