@@ -1,16 +1,37 @@
-# 🌿 Exilium Strain Tracker
+<p align="center">
+  <img src="logo-transparent.webp" width="100" alt="Exilium Logo">
+</p>
 
-Ein persönlicher Tracker für medizinische Cannabis-Sorten. Verwalte, bewerte und durchsuche deine Sorten — gehostet auf GitHub Pages mit Supabase als Backend.
+<h1 align="center">🌿 Exilium Tracker</h1>
 
-**[Live →](https://crzx1337.github.io/exilium-strain-tracker/)**
+<p align="center">
+  <a href="https://exilium.space">🚀 Live</a>
+  <span>·</span>
+  <span>⚡ Vanilla JS</span>
+</p>
 
-## Features
+<p align="center"><i>Track your medical cannabis strains with style.</i></p>
 
-- 📋 Sortenliste mit THC/CBD, Bewertung & Wirkung
-- 🔍 Suche & Filter (Name, Typ, Bewertung)
-- ⭐ 5-Sterne Bewertungssystem
-- 📊 Live-Statistiken
+---
 
-## Lizenz
+## ✨ Features
 
-Privates Projekt.
+- 🌿 Strain tracking with THC/CBD profiles
+- ⭐ 5-star rating system
+- 🔍 Smart search & filtering
+- 📊 Live statistics dashboard
+- 🖼️ Strain image upload
+- 📝 Personal notes per strain
+- 📜 Full activity history log
+- 🏷️ Tag-based organization
+- � Responsive mobile design
+- 🔐 Secure user authentication
+- 🌙 Dark aesthetic UI
+- ⚡ Fast, no bloat
+
+## 🛠️ Built With
+
+- Vanilla JavaScript — pure, no frameworks
+- Supabase — backend & auth
+- Pure CSS — custom styling
+- GitHub Pages — hosting
