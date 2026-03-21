@@ -12,7 +12,7 @@ const UI = {
         : 'Noch keine Sorten eingetragen.';
       grid.innerHTML = `
         <div class="empty-state">
-          <img src="logo-transparent.png" alt="" class="empty-state-logo">
+          <img src="logo-transparent.webp" alt="" class="empty-state-logo">
           <h3>Keine Sorten eingetragen</h3>
           <p>${msg}</p>
         </div>
@@ -24,7 +24,7 @@ const UI = {
       <div class="strain-card ${strain.image_url ? '' : 'strain-card--no-image'}" onclick="App.showDetail('${strain.id}')" style="animation-delay: ${i * 0.03}s">
         ${strain.image_url
           ? `<div class="strain-image-container"><img src="${strain.image_url}" alt="${this.escapeHtml(strain.name)}" class="strain-image" loading="lazy"></div>`
-          : `<div class="strain-image-placeholder" aria-hidden="true"><img src="logo-transparent.png" alt="" class="strain-image-placeholder-logo"></div>`
+          : `<div class="strain-image-placeholder" aria-hidden="true"><img src="logo-transparent.webp" alt="" class="strain-image-placeholder-logo"></div>`
         }
         <div class="strain-card-header" style="align-items: flex-start; justify-content: space-between;">
           <div style="flex-grow: 1; min-width: 0; padding-right: 12px;">
@@ -233,6 +233,18 @@ const UI = {
         </div>
         ` : ''}
       </div>
+      ${Auth?.isAuthenticated ? `
+      <div class="detail-admin-actions" style="display: flex; gap: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-subtle);">
+        <button class="btn btn-secondary" onclick="App.editStrain('${strain.id}')" style="flex: 1;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: text-bottom;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Bearbeiten
+        </button>
+        <button class="btn btn-danger" onclick="App.deleteStrain('${strain.id}')" style="flex: 1;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: text-bottom;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+          Löschen
+        </button>
+      </div>
+      ` : ''}
       ${strain.importer ? `
         <div class="detail-section" style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); padding:12px 16px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
           <div class="detail-label" style="margin:0;">Importeur</div>

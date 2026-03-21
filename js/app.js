@@ -124,6 +124,7 @@ const App = {
                 UI.renderDetail(strain);
                 UI.showModal('detail-modal');
             } else {
+                UI.showToast('Sorte nicht gefunden', 'error');
                 this.openStrainId = null;
                 this.syncUrlFromFilters();
             }
@@ -278,6 +279,8 @@ const App = {
     bindActivityLogEvents() {
         const list = document.getElementById('admin-activity-list');
         if (!list) return;
+        if (this._activityLogBound) return;
+        this._activityLogBound = true;
 
         list.addEventListener('click', (e) => {
             const item = e.target.closest('[data-activity-id]');
