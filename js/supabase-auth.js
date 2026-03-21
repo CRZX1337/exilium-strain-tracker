@@ -22,13 +22,17 @@ const Auth = {
         // Listen for sign-in / sign-out events
         db.auth.onAuthStateChange((event, session) => {
             const previousUser = this.user;
+            
+            // Log logout BEFORE clearing user (so we have access to user data)
+            if (event === 'SIGNED_OUT' && previousUser) {
+                this.logAuthActivity('logout', previousUser);
+            }
+            
             this.user = session?.user ?? null;
             
-            // Log login/logout events
+            // Log login after user is set
             if (event === 'SIGNED_IN' && !previousUser) {
-                this.logAuthActivity('login');
-            } else if (event === 'SIGNED_OUT' && previousUser) {
-                this.logAuthActivity('logout');
+                this.logAuthActivity('login', this.user);
             }
             
             this._onAuthChange();
@@ -94,9 +98,10 @@ const Auth = {
 
     /**
      * Returns true when the current user is the owner (admin)
+     * Uses app_metadata.role claim instead of hardcoded email
      */
     get isOwner() {
-        return this.user?.email === 'g.sensale@icloud.com';
+        return this.user?.app_metadata?.role === 'owner' || this.user?.user_metadata?.role === 'owner';
     },
 
     /**
@@ -132,17 +137,19 @@ const Auth = {
     /**
      * Log authentication activity (login/logout)
      * @param {string} action - 'login' or 'logout'
+     * @param {object} user - User object to log (optional, defaults to this.user)
      */
-    async logAuthActivity(action) {
-        if (!this.user) return;
+    async logAuthActivity(action, user = null) {
+        const userToLog = user || this.user;
+        if (!userToLog) return;
         
         try {
             const activityData = {
                 action_type: action,
                 strain_id: null,
                 strain_name: action === 'login' ? 'Login' : 'Logout',
-                user_id: this.user.id,
-                user_email: this.user.email,
+                user_id: userToLog.id,
+                user_email: userToLog.email,
                 details: { timestamp: new Date().toISOString() }
             };
 

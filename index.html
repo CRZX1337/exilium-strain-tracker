@@ -471,6 +471,7 @@
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">Passwort speichern</button>
           </div>
+        </form>
       </div>
     </div>
   </div>
@@ -511,6 +512,70 @@
       </div>
       <div class="modal-body" id="activity-detail-content">
         <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DELETE CONFIRMATION MODALS ===== -->
+  <div id="delete-strain-confirm-modal" class="modal-overlay">
+    <div class="modal modal-small">
+      <div class="modal-header">
+        <h2 class="modal-title">Sorte löschen?</h2>
+        <button class="modal-close" onclick="UI.hideModal('delete-strain-confirm-modal')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="form-hint" style="margin-bottom: 1rem;">Möchtest du "<span id="delete-strain-name"></span>" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="UI.hideModal('delete-strain-confirm-modal')">Abbrechen</button>
+          <button type="button" class="btn btn-danger" id="confirm-delete-strain-btn">Löschen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="delete-image-confirm-modal" class="modal-overlay">
+    <div class="modal modal-small">
+      <div class="modal-header">
+        <h2 class="modal-title">Bild löschen?</h2>
+        <button class="modal-close" onclick="UI.hideModal('delete-image-confirm-modal')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="form-hint" style="margin-bottom: 1rem;">Möchtest du dieses Bild wirklich löschen?</p>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="UI.hideModal('delete-image-confirm-modal')">Abbrechen</button>
+          <button type="button" class="btn btn-danger" id="confirm-delete-image-btn">Löschen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="delete-user-confirm-modal" class="modal-overlay">
+    <div class="modal modal-small">
+      <div class="modal-header">
+        <h2 class="modal-title">Benutzer löschen?</h2>
+        <button class="modal-close" onclick="UI.hideModal('delete-user-confirm-modal')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="form-hint" style="margin-bottom: 1rem;">Möchtest du diesen Benutzer wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="UI.hideModal('delete-user-confirm-modal')">Abbrechen</button>
+          <button type="button" class="btn btn-danger" id="confirm-delete-user-btn">Löschen</button>
+        </div>
       </div>
     </div>
   </div>

@@ -209,18 +209,8 @@ const App = {
             this.syncUrlFromFilters();
         });
 
-        // Card cursor tracking for interactive glow
-        document.addEventListener('mousemove', (e) => {
-            document.querySelectorAll('.strain-card').forEach(card => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const percentX = (x / rect.width) * 100;
-                const percentY = (y / rect.height) * 100;
-                card.style.setProperty('--mouse-x', `${percentX}%`);
-                card.style.setProperty('--mouse-y', `${percentY}%`);
-            });
-        });
+        // Card cursor tracking - attach to individual cards for better performance
+        this.bindCardMouseTracking();
 
         // Close modals on overlay click
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
@@ -249,6 +239,26 @@ const App = {
                     });
                 }
             }
+        });
+    },
+
+    /** Attach mouse tracking listeners to individual cards for performance */
+    bindCardMouseTracking() {
+        const grid = document.getElementById('strain-grid');
+        if (!grid) return;
+
+        // Use event delegation with a single listener on the grid
+        grid.addEventListener('mousemove', (e) => {
+            const card = e.target.closest('.strain-card');
+            if (!card) return;
+
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const percentX = (x / rect.width) * 100;
+            const percentY = (y / rect.height) * 100;
+            card.style.setProperty('--mouse-x', `${percentX}%`);
+            card.style.setProperty('--mouse-y', `${percentY}%`);
         });
     },
 
@@ -455,6 +465,23 @@ const App = {
             // Handle image upload if a file was selected
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
+                
+                // File validation: max 5MB
+                const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+                if (file.size > MAX_FILE_SIZE) {
+                    UI.showToast('Bild zu groß (max. 5MB)', 'error');
+                    setSaving(false);
+                    return;
+                }
+                
+                // File validation: allowed image types only
+                const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                if (!ALLOWED_TYPES.includes(file.type)) {
+                    UI.showToast('Ungültiges Dateiformat (nur JPG, PNG, GIF, WebP erlaubt)', 'error');
+                    setSaving(false);
+                    return;
+                }
+                
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
 
@@ -597,20 +624,34 @@ const App = {
         UI.showModal('form-modal');
     },
 
-    // --- Delete strain ---
-    async deleteStrain(id) {
-        if (!Auth.isAuthenticated) {
-            UI.showToast('Admin-Zugang erforderlich', 'error');
-            return;
-        }
+    // --- Delete strain with modal confirmation ---
+    /** Show delete confirmation modal for strain */
+    showDeleteStrainConfirm(id) {
+        const strain = this.strains.find(s => s.id === id);
+        if (!strain) return;
+        
+        this._pendingDeleteStrainId = id;
+        document.getElementById('delete-strain-name').textContent = strain.name;
+        
+        const confirmBtn = document.getElementById('confirm-delete-strain-btn');
+        confirmBtn.onclick = () => this.confirmDeleteStrain();
+        
+        UI.showModal('delete-strain-confirm-modal');
+    },
 
+    /** Confirm and execute strain deletion */
+    async confirmDeleteStrain() {
+        const id = this._pendingDeleteStrainId;
+        if (!id) return;
+        
+        UI.hideModal('delete-strain-confirm-modal');
+        this._pendingDeleteStrainId = null;
+        
         const strain = this.strains.find(s => s.id === id);
         if (!strain) return;
 
         // Capture strain data before deletion for activity log
         const strainCopy = { ...strain };
-
-        if (!confirm(`"${strain.name}" wirklich löschen?`)) return;
 
         // Animate removal first
         const cardElements = document.querySelectorAll('.strain-card');
@@ -645,6 +686,15 @@ const App = {
             // Revert animation if error
             if (targetCard) targetCard.classList.remove('removing');
         }
+    },
+
+    // Legacy deleteStrain method for backward compatibility - redirects to modal
+    async deleteStrain(id) {
+        if (!Auth.isAuthenticated) {
+            UI.showToast('Admin-Zugang erforderlich', 'error');
+            return;
+        }
+        this.showDeleteStrainConfirm(id);
     },
 
     // --- Show detail modal ---
@@ -1091,9 +1141,23 @@ const App = {
         }
     },
 
-    /** Delete user */
-    async deleteUser(userId) {
-        if (!confirm('Diesen Benutzer wirklich löschen?')) return;
+    /** Show delete confirmation modal for user */
+    showDeleteUserConfirm(userId) {
+        this._pendingDeleteUserId = userId;
+        
+        const confirmBtn = document.getElementById('confirm-delete-user-btn');
+        confirmBtn.onclick = () => this.confirmDeleteUser();
+        
+        UI.showModal('delete-user-confirm-modal');
+    },
+
+    /** Confirm and execute user deletion */
+    async confirmDeleteUser() {
+        const userId = this._pendingDeleteUserId;
+        if (!userId) return;
+        
+        UI.hideModal('delete-user-confirm-modal');
+        this._pendingDeleteUserId = null;
 
         try {
             // Get current session for auth token
@@ -1124,6 +1188,11 @@ const App = {
             console.error('Error deleting user:', err);
             UI.showToast('Fehler beim Löschen: ' + err.message, 'error');
         }
+    },
+
+    // Legacy deleteUser method - redirects to modal
+    async deleteUser(userId) {
+        this.showDeleteUserConfirm(userId);
     },
 
     // --- Images Management ---
@@ -1209,9 +1278,23 @@ const App = {
         UI.showModal('lightbox-modal');
     },
 
-    /** Delete image from storage */
-    async deleteImage(fileName) {
-        if (!confirm('Dieses Bild wirklich löschen?')) return;
+    /** Show delete confirmation modal for image */
+    showDeleteImageConfirm(fileName) {
+        this._pendingDeleteImageName = fileName;
+        
+        const confirmBtn = document.getElementById('confirm-delete-image-btn');
+        confirmBtn.onclick = () => this.confirmDeleteImage();
+        
+        UI.showModal('delete-image-confirm-modal');
+    },
+
+    /** Confirm and execute image deletion */
+    async confirmDeleteImage() {
+        const fileName = this._pendingDeleteImageName;
+        if (!fileName) return;
+        
+        UI.hideModal('delete-image-confirm-modal');
+        this._pendingDeleteImageName = null;
 
         try {
             const { error } = await db.storage
@@ -1226,6 +1309,11 @@ const App = {
             console.error('Error deleting image:', err);
             UI.showToast('Fehler beim Löschen', 'error');
         }
+    },
+
+    // Legacy deleteImage method - redirects to modal
+    async deleteImage(fileName) {
+        this.showDeleteImageConfirm(fileName);
     },
 
     // --- Activity Logging ---

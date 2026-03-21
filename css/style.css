@@ -2932,3 +2932,8 @@ textarea,
 .checkbox-text {
     user-select: none;
 }
+
+/* --- Header button visibility - prevent flash before auth check --- */
+#add-strain-btn {
+    display: none;
+}
