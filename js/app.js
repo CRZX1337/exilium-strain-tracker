@@ -59,7 +59,7 @@ const App = {
         const p = new URLSearchParams();
         if (state.q) p.set('q', state.q);
         if (state.type) p.set('type', state.type);
-        if (state.sort && state.sort !== 'newest') p.set('sort', state.sort);
+        if (state.sort) p.set('sort', state.sort);
         if (state.strainId) {
             const strain = this.strains.find(s => s.id === state.strainId);
             if (strain) {
