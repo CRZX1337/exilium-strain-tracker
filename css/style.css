@@ -1239,6 +1239,14 @@ body::before {
     border-left: 3px solid var(--info);
 }
 
+.toast.warning {
+    border-left: 3px solid var(--sativa);
+}
+
+.toast.warning span:first-child {
+    color: var(--sativa);
+}
+
 /* --- Detail Modal --- */
 .detail-section {
     margin-bottom: 20px;

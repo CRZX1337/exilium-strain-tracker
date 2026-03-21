@@ -133,7 +133,10 @@ const UI = {
     overlay.classList.remove('active');
     // Wait only for the modal transition to complete before unlocking scroll
     setTimeout(() => {
-      document.body.style.overflow = '';
+      // Only unlock if no other modals are active
+      if (!document.querySelector('.modal-overlay.active')) {
+        document.body.style.overflow = '';
+      }
     }, 500);
   },
 
@@ -148,7 +151,10 @@ const UI = {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    const icon = type === 'success' ? '✓' : type === 'info' ? 'ℹ' : '✗';
+    const icon = type === 'success' ? '✓' 
+               : type === 'info' ? 'ℹ' 
+               : type === 'warning' ? '⚠' 
+               : '✗';
     toast.innerHTML = `
       <span>${icon}</span>
       <span>${this.escapeHtml(message)}</span>
@@ -276,24 +282,29 @@ const UI = {
       cursorHalo.style.top = e.clientY + 'px';
     });
 
-    // Add active state to interactive elements
-    const interactiveElements = document.querySelectorAll('button, a, [onclick], input, select, textarea, .custom-select-wrapper, .custom-select-trigger, .custom-select-option');
-    
-    interactiveElements.forEach(el => {
-      el.addEventListener('mouseenter', () => {
+    // Use event delegation for interactive elements (works with dynamically added elements)
+    document.addEventListener('mouseenter', (e) => {
+      const target = e.target;
+      if (target.matches('button, a, [onclick], input, select, textarea, .custom-select-wrapper, .custom-select-trigger, .custom-select-option')) {
         cursorHalo.classList.add('active');
-      });
-      
-      el.addEventListener('mouseleave', () => {
-        cursorHalo.classList.remove('active');
-      });
+      }
+    }, true);
 
-      el.addEventListener('click', () => {
+    document.addEventListener('mouseleave', (e) => {
+      const target = e.target;
+      if (target.matches('button, a, [onclick], input, select, textarea, .custom-select-wrapper, .custom-select-trigger, .custom-select-option')) {
+        cursorHalo.classList.remove('active');
+      }
+    }, true);
+
+    document.addEventListener('click', (e) => {
+      const target = e.target;
+      if (target.matches('button, a, [onclick], input, select, textarea, .custom-select-wrapper, .custom-select-trigger, .custom-select-option')) {
         cursorHalo.classList.add('pulse');
         setTimeout(() => {
           cursorHalo.classList.remove('pulse');
         }, 400);
-      });
+      }
     });
 
     // Ensure custom cursor shows on input/select focus
@@ -324,21 +335,6 @@ const UI = {
       }
     });
 
-    // Handle dynamic custom select options
-    document.addEventListener('mouseenter', (e) => {
-      if (e.target.matches('.custom-select-option')) {
-        cursorHalo.classList.add('active', 'dropdown');
-        cursorDot.classList.remove('text-input');
-        cursorHalo.classList.remove('text-input');
-      }
-    }, true);
-
-    document.addEventListener('mouseleave', (e) => {
-      if (e.target.matches('.custom-select-option')) {
-        cursorHalo.classList.remove('active', 'dropdown');
-      }
-    }, true);
-
     // Hide cursor when leaving window
     document.addEventListener('mouseleave', () => {
       cursorDot.style.opacity = '0';
@@ -356,27 +352,27 @@ const UI = {
 
   // --- Initialize Mobile Touch Ripples ---
   initTouchRipples() {
-    const interactiveElements = document.querySelectorAll('button, a, [onclick]');
-    
-    interactiveElements.forEach(el => {
-      el.addEventListener('touchstart', (e) => {
-        const touch = e.touches[0];
-        const rect = el.getBoundingClientRect();
-        
-        // Create ripple element
-        const ripple = document.createElement('div');
-        ripple.className = 'touch-ripple';
-        ripple.style.left = (touch.clientX - rect.left) + 'px';
-        ripple.style.top = (touch.clientY - rect.top) + 'px';
-        
-        el.appendChild(ripple);
-        
-        // Remove ripple after animation
-        setTimeout(() => {
-          ripple.remove();
-        }, 600);
-      });
-    });
+    // Use event delegation for touch ripples (works with dynamically added elements)
+    document.addEventListener('touchstart', (e) => {
+      const el = e.target.closest('button, a, [onclick]');
+      if (!el) return;
+      
+      const touch = e.touches[0];
+      const rect = el.getBoundingClientRect();
+      
+      // Create ripple element
+      const ripple = document.createElement('div');
+      ripple.className = 'touch-ripple';
+      ripple.style.left = (touch.clientX - rect.left) + 'px';
+      ripple.style.top = (touch.clientY - rect.top) + 'px';
+      
+      el.appendChild(ripple);
+      
+      // Remove ripple after animation
+      setTimeout(() => {
+        ripple.remove();
+      }, 600);
+    }, { passive: true });
   },
 
   // --- Custom Select Dropdowns ---
