@@ -241,7 +241,7 @@ const App = {
             const isImage = e.target.closest('.strain-image, .strain-image-container');
 
             if (card) {
-                const strainId = card.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+                const strainId = card.dataset.id;
                 state._contextTarget = { type: 'card', strainId };
                 const strain = state.strains.find(s => s.id === strainId);
 

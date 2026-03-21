@@ -304,8 +304,7 @@ export const StrainManager = {
         const strainCopy = { ...strain };
 
         // Animate removal first
-        const cardElements = document.querySelectorAll('.strain-card');
-        let targetCard = Array.from(cardElements).find(card => card.getAttribute('onclick') === `App.showDetail('${id}')`);
+        const targetCard = document.querySelector(`.strain-card[data-id="${id}"]`);
 
         if (targetCard) {
             targetCard.classList.add('removing');

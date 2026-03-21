@@ -24,7 +24,7 @@ export const UI = {
     }
 
     grid.innerHTML = strains.map((strain, i) => `
-      <div class="strain-card ${strain.image_url ? '' : 'strain-card--no-image'}" onclick="App.showDetail('${strain.id}')" style="animation-delay: ${i * 0.03}s">
+      <div class="strain-card ${strain.image_url ? '' : 'strain-card--no-image'}" data-id="${strain.id}" onclick="App.showDetail('${strain.id}')" style="animation-delay: ${i * 0.03}s">
         ${strain.image_url
           ? `<div class="strain-image-container"><img src="${strain.image_url}" alt="${this.escapeHtml(strain.name)}" class="strain-image" loading="lazy"></div>`
           : `<div class="strain-image-placeholder" aria-hidden="true"><img src="logo-transparent.webp" alt="" class="strain-image-placeholder-logo"></div>`
