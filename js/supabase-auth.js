@@ -76,9 +76,18 @@ const Auth = {
         }
     },
 
-    /** Returns true when a user is currently logged in */
+    /**
+     * Returns true when a user is currently logged in
+     */
     get isAuthenticated() {
         return this.user !== null;
+    },
+
+    /**
+     * Returns true when the current user is the owner (admin)
+     */
+    get isOwner() {
+        return this.user?.email === 'g.sensale@icloud.com';
     },
 
     /**
@@ -106,7 +115,7 @@ const Auth = {
      */
     _onAuthChange() {
         if (typeof App !== 'undefined') {
-            App.isAdmin = this.isAuthenticated;
+            App.isAdmin = this.isOwner; // Only owner is admin
             App.updateAdminButton();
 
             // Toggle login button visibility (show when NOT authenticated)
