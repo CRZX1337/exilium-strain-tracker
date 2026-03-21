@@ -1456,7 +1456,7 @@ const App = {
             // Update user filter options
             this.updateActivityUserFilter();
 
-            this.renderAdminActivity(loadMore);
+            this.renderAdminActivity(loadMore, data?.length || 0);
         } catch (err) {
             console.error('Error loading activity logs:', err);
             if (!loadMore) {
@@ -1501,7 +1501,7 @@ const App = {
     },
 
     /** Render activity logs in admin panel */
-    renderAdminActivity(append = false) {
+    renderAdminActivity(append = false, newCount = 0) {
         const list = document.getElementById('admin-activity-list');
         
         if (!this.adminActivity || this.adminActivity.length === 0) {
@@ -1524,7 +1524,7 @@ const App = {
             logout: { icon: '🚪', label: 'Logout', class: 'logout' }
         };
 
-        const html = this.adminActivity.slice(append ? -data.length : 0).map(log => {
+        const html = this.adminActivity.slice(append ? -newCount : 0).map(log => {
             const action = actionLabels[log.action_type] || { icon: '?', label: log.action_type, class: '' };
             const date = new Date(log.created_at).toLocaleString('de-DE', {
                 day: '2-digit',
@@ -1555,6 +1555,75 @@ const App = {
         } else {
             list.innerHTML = html;
         }
+    },
+
+    /** Show activity detail modal */
+    showActivityDetail(logId) {
+        const log = this.adminActivity?.find(l => l.id === logId);
+        if (!log) return;
+
+        const actionLabels = {
+            create: { icon: '✚', label: 'Hinzugefügt', class: 'create' },
+            update: { icon: '✎', label: 'Bearbeitet', class: 'update' },
+            delete: { icon: '🗑', label: 'Gelöscht', class: 'delete' },
+            privacy_toggle: { icon: '🔒', label: 'Sichtbarkeit geändert', class: 'privacy' },
+            login: { icon: '🔑', label: 'Login', class: 'login' },
+            logout: { icon: '🚪', label: 'Logout', class: 'logout' }
+        };
+
+        const action = actionLabels[log.action_type] || { icon: '?', label: log.action_type, class: '' };
+        const date = new Date(log.created_at).toLocaleString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+
+        let detailsHtml = '';
+        if (log.details && Object.keys(log.details).length > 0) {
+            if (log.action_type === 'privacy_toggle') {
+                detailsHtml = `
+                    <div class="detail-section">
+                        <h4>Änderung</h4>
+                        <p>Vorher: ${log.details.previous_state ? '🔒 Privat' : '🌐 Öffentlich'}</p>
+                        <p>Nachher: ${log.details.new_state ? '🔒 Privat' : '🌐 Öffentlich'}</p>
+                    </div>
+                `;
+            } else if (['create', 'update'].includes(log.action_type) && log.details.changes) {
+                const changes = Object.entries(log.details.changes)
+                    .map(([key, val]) => `<p><strong>${key}:</strong> ${val || '—'}</p>`)
+                    .join('');
+                detailsHtml = changes ? `<div class="detail-section"><h4>Geänderte Felder</h4>${changes}</div>` : '';
+            } else {
+                const details = Object.entries(log.details)
+                    .map(([key, val]) => `<p><strong>${key}:</strong> ${typeof val === 'object' ? JSON.stringify(val) : val}</p>`)
+                    .join('');
+                detailsHtml = details ? `<div class="detail-section"><h4>Details</h4>${details}</div>` : '';
+            }
+        }
+
+        const content = document.getElementById('activity-detail-content');
+        content.innerHTML = `
+            <div class="activity-detail">
+                <div class="activity-header ${action.class}">
+                    <div class="activity-icon-large">${action.icon}</div>
+                    <div class="activity-title">
+                        <h3>${action.label}</h3>
+                        <p class="activity-strain">${this.escapeHtml(log.strain_name || '—')}</p>
+                    </div>
+                </div>
+                <div class="activity-meta">
+                    <p><strong>Benutzer:</strong> ${this.escapeHtml(log.user_email || 'Unbekannt')}</p>
+                    <p><strong>Zeitpunkt:</strong> ${date}</p>
+                    ${log.strain_id ? `<p><strong>Sorten-ID:</strong> <code>${log.strain_id}</code></p>` : ''}
+                </div>
+                ${detailsHtml}
+            </div>
+        `;
+
+        UI.showModal('activity-detail-modal');
     }
 };
 
