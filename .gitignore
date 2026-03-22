@@ -30,5 +30,8 @@ prisma/
 # Local config with real credentials
 js/supabase-config.js
 
+# Icon generation script
+generate-icons.js
+
 
 
