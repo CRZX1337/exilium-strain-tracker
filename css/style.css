@@ -3334,9 +3334,4 @@ padding-right: 40px;
     height: 1px;
     background: rgba(255, 255, 255, 0.07);
     margin: 4px 6px;
-}
-
-/* Disable on touch devices */
-@media (hover: none) and (pointer: coarse) {
-    .context-menu { display: none !important; }
-}
+}

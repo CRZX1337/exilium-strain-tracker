@@ -232,18 +232,14 @@ const App = {
             state._contextTarget = null;
         };
 
-        // Right-click handler
-        document.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-
-            // Check if on a strain card
-            const card = e.target.closest('.strain-card');
-            const isImage = e.target.closest('.strain-image, .strain-image-container');
+        // Shared helper: build item list and show menu for a given point and target element
+        const showMenuFor = (x, y, targetEl) => {
+            const card = targetEl.closest('.strain-card');
+            const isImage = targetEl.closest('.strain-image, .strain-image-container');
 
             if (card) {
                 const strainId = card.dataset.id;
                 state._contextTarget = { type: 'card', strainId };
-                const strain = state.strains.find(s => s.id === strainId);
 
                 const items = [
                     { icon: '👁️', label: 'Details anzeigen', action: 'view', cls: 'accent' },
@@ -262,9 +258,8 @@ const App = {
                     items.push({ icon: '🗑️', label: 'Löschen', action: 'delete', cls: 'danger' });
                 }
 
-                show(e.clientX, e.clientY, items);
+                show(x, y, items);
             } else {
-                // Background context menu
                 state._contextTarget = { type: 'background' };
                 const items = [
                     { icon: '🔄', label: 'Aktualisieren', action: 'refresh', cls: 'accent' },
@@ -274,9 +269,50 @@ const App = {
                     items.push('separator');
                     items.push({ icon: '➕', label: 'Neue Sorte', action: 'add-strain', cls: 'accent' });
                 }
-                show(e.clientX, e.clientY, items);
+                show(x, y, items);
             }
+        };
+
+        // Right-click handler
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            showMenuFor(e.clientX, e.clientY, e.target);
         });
+
+        // Long-press handler for touch devices
+        let _lpTimer = null;
+        let _lpStartX = 0;
+        let _lpStartY = 0;
+        let _lpTarget = null;
+
+        const _lpCancel = () => {
+            clearTimeout(_lpTimer);
+            _lpTimer = null;
+        };
+
+        document.addEventListener('touchstart', (e) => {
+            const t = e.touches[0];
+            _lpStartX = t.clientX;
+            _lpStartY = t.clientY;
+            _lpTarget = e.target;
+            _lpCancel();
+            _lpTimer = setTimeout(() => {
+                if (navigator.vibrate) navigator.vibrate(30);
+                showMenuFor(_lpStartX, _lpStartY, _lpTarget);
+                _lpTimer = null;
+            }, 500);
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            if (_lpTimer === null) return;
+            const t = e.touches[0];
+            const dx = t.clientX - _lpStartX;
+            const dy = t.clientY - _lpStartY;
+            if (dx * dx + dy * dy > 64) _lpCancel();
+        }, { passive: true });
+
+        document.addEventListener('touchend', _lpCancel, { passive: true });
+        document.addEventListener('touchcancel', _lpCancel, { passive: true });
 
         // Hide on click outside, scroll, or Escape
         document.addEventListener('click', (e) => {
