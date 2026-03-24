@@ -4,9 +4,29 @@
 
 import { Auth } from './supabase-auth.js';
 import { state } from './modules/state.js';
+import { ModeManager } from './modules/mode.js';
 
 export const UI = {
-  // --- Render strain cards into the grid ---
+  getLabels() {
+    const isShop = ModeManager.isShop();
+    if (isShop) {
+      return {
+        medicalName: null,
+        importer: 'Grower / Shop',
+        effects: 'Genetik',
+        notes: 'Notizen',
+        showShopBadge: true
+      };
+    }
+    return {
+      medicalName: 'Medizinischer Name',
+      importer: 'Importeur',
+      effects: 'Wirkung',
+      notes: 'Notizen',
+      showShopBadge: false
+    };
+  },
+
   renderStrains(strains) {
     const grid = document.getElementById('strain-grid');
     if (!strains || strains.length === 0) {
@@ -23,6 +43,8 @@ export const UI = {
       return;
     }
 
+    const labels = this.getLabels();
+
     grid.innerHTML = strains.map((strain, i) => `
       <div class="strain-card ${strain.image_url ? '' : 'strain-card--no-image'}" data-id="${strain.id}" onclick="App.showDetail('${strain.id}')" style="animation-delay: ${i * 0.03}s">
         ${strain.image_url
@@ -32,7 +54,7 @@ export const UI = {
         <div class="strain-card-header" style="align-items: flex-start; justify-content: space-between;">
           <div style="flex-grow: 1; min-width: 0; padding-right: 12px;">
             <h3 class="strain-name" style="margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHtml(strain.name)}</h3>
-            ${strain.medical_name ? `<div class="strain-medical-name" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">${this.escapeHtml(strain.medical_name)}</div>` : ''}
+            ${labels.medicalName && strain.medical_name ? `<div class="strain-medical-name" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">${this.escapeHtml(strain.medical_name)}</div>` : ''}
           </div>
           <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0;">
             <span class="strain-type-badge ${strain.type.toLowerCase()}">${strain.type}</span>
@@ -49,7 +71,7 @@ export const UI = {
         </div>
         ${(strain.effects || strain.notes) ? `<p class="strain-effects">${this.escapeHtml(strain.effects || strain.notes)}</p>` : ''}
         <div class="strain-card-footer">
-          <span class="strain-date">${this.formatDate(strain.created_at)}</span>
+          <span class="strain-date">${labels.showShopBadge && strain.importer ? '☕ ' + this.escapeHtml(strain.importer) : this.formatDate(strain.created_at)}</span>
           ${Auth?.isAuthenticated ? `
           <div class="strain-actions" onclick="event.stopPropagation()">
             <button onclick="App.editStrain('${strain.id}')" title="Bearbeiten">
@@ -196,6 +218,7 @@ export const UI = {
 
   // --- Detail modal content ---
   renderDetail(strain) {
+    const labels = this.getLabels();
     const content = document.getElementById('detail-content');
     content.innerHTML = `
       ${strain.image_url ? `
@@ -207,7 +230,7 @@ export const UI = {
       <div class="strain-card-header" style="margin-bottom:20px; align-items: flex-start; justify-content: space-between;">
         <div style="flex-grow: 1; padding-right: 16px;">
           <h2 class="strain-name" style="font-size:1.5rem; margin: 0;">${this.escapeHtml(strain.name)}</h2>
-          ${strain.medical_name ? `<div class="strain-medical-name" style="font-size: 1rem; color: var(--text-secondary); margin-top: 6px; display: flex; align-items: center; gap: 8px;">${this.escapeHtml(strain.medical_name)}<button class="copy-medical-btn" onclick="App.copyMedicalName('${this.escapeHtml(strain.medical_name)}')" title="Medizinischen Namen kopieren"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>` : ''}
+          ${labels.medicalName && strain.medical_name ? `<div class="strain-medical-name" style="font-size: 1rem; color: var(--text-secondary); margin-top: 6px; display: flex; align-items: center; gap: 8px;">${this.escapeHtml(strain.medical_name)}<button class="copy-medical-btn" onclick="App.copyMedicalName('${this.escapeHtml(strain.medical_name)}')" title="${labels.medicalName} kopieren"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>` : ''}
         </div>
         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex-shrink: 0;">
           <span class="strain-type-badge ${strain.type.toLowerCase()}">${strain.type}</span>
@@ -250,14 +273,14 @@ export const UI = {
       ` : ''}
       ${strain.importer ? `
         <div class="detail-section" style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); padding:12px 16px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
-          <div class="detail-label" style="margin:0;">Importeur</div>
+          <div class="detail-label" style="margin:0;">${labels.importer}</div>
           <div class="detail-value" style="font-weight:600; color:var(--text-primary);">${this.escapeHtml(strain.importer)}</div>
         </div>
       ` : ''}
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
         ${strain.effects ? `
           <div class="detail-section" style="margin: 0;">
-            <div class="detail-label">Wirkung</div>
+            <div class="detail-label">${labels.effects}</div>
             <div class="detail-value">${this.escapeHtml(strain.effects)}</div>
           </div>
         ` : ''}
@@ -269,7 +292,7 @@ export const UI = {
         ` : ''}
         ${strain.notes ? `
           <div class="detail-section" style="margin: 0;">
-            <div class="detail-label">Notizen</div>
+            <div class="detail-label">${labels.notes}</div>
             <div class="detail-value">${this.escapeHtml(strain.notes)}</div>
           </div>
         ` : ''}
