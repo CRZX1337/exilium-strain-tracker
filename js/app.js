@@ -9,7 +9,6 @@ import { StrainManager } from './modules/strainManager.js';
 import { AdminPanel } from './modules/adminPanel.js';
 import { ActivityLog } from './modules/activityLog.js';
 import { ImageManager } from './modules/imageManager.js';
-import { ModeManager } from './modules/mode.js';
 
 /**
  * App orchestrator - delegates to specialized modules.
@@ -23,9 +22,7 @@ const App = {
     async init() {
         const loadStart = Date.now();
 
-        ModeManager.init();
-        ModeManager.initLogoTap();
-
+        // Initialise Supabase Auth and sync session state
         await Auth.init();
 
         UI.showLoading();
