@@ -2514,11 +2514,55 @@ textarea,
 }
 
 .bulk-select-all input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--accent);
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-card);
+    border-radius: 5px;
+    background: var(--bg-input);
     cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
     margin: 0;
+}
+
+.bulk-select-all input[type="checkbox"]:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
+}
+
+.bulk-select-all input[type="checkbox"]:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.bulk-select-all input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 4px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.bulk-select-all input[type="checkbox"]:indeterminate {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.bulk-select-all input[type="checkbox"]:indeterminate::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 7px;
+    width: 8px;
+    height: 2px;
+    background: white;
 }
 
 .bulk-select-all span {
@@ -2557,22 +2601,67 @@ textarea,
 
 /* Admin Item Checkbox */
 .admin-item-checkbox {
-    display: flex;
-    align-items: center;
-    margin-right: 4px;
+display: flex;
+align-items: center;
+margin-right: 4px;
 }
 
 .admin-item-checkbox input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--accent);
-    cursor: pointer;
-    margin: 0;
+appearance: none;
+-webkit-appearance: none;
+width: 22px;
+height: 22px;
+border: 2px solid var(--border-card);
+border-radius: 6px;
+background: var(--bg-input);
+cursor: pointer;
+position: relative;
+transition: all 0.2s ease;
+flex-shrink: 0;
+}
+
+.admin-item-checkbox input[type="checkbox"]:hover {
+border-color: var(--accent);
+box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
+}
+
+.admin-item-checkbox input[type="checkbox"]:checked {
+background: var(--accent);
+border-color: var(--accent);
+}
+
+.admin-item-checkbox input[type="checkbox"]:checked::after {
+content: '';
+position: absolute;
+left: 6px;
+top: 2px;
+width: 5px;
+height: 10px;
+border: solid white;
+border-width: 0 2px 2px 0;
+transform: rotate(45deg);
+}
+
+.admin-item-checkbox input[type="checkbox"]:indeterminate {
+background: var(--accent);
+border-color: var(--accent);
+}
+
+.admin-item-checkbox input[type="checkbox"]:indeterminate::after {
+content: '';
+position: absolute;
+left: 4px;
+top: 8px;
+width: 10px;
+height: 2px;
+background: white;
 }
 
 /* Admin List (for strains and users) with stagger animation */
 .admin-list {
-    display: flex;
+display: flex;
+flex-direction: column;
+gap: 8px;
     flex-direction: column;
     gap: 8px;
 }

@@ -381,6 +381,12 @@ const App = {
     confirmDeleteUser() { return AdminPanel.confirmDeleteUser(); },
     updateAdminButton() { return AdminPanel.updateAdminButton(); },
 
+    // Bulk Actions (delegated to AdminPanel)
+    toggleSelectAllStrains() { return AdminPanel.toggleSelectAllStrains(); },
+    updateBulkActionButtons() { return AdminPanel.updateBulkActionButtons(); },
+    bulkDeleteStrains() { return AdminPanel.bulkDeleteStrains(); },
+    bulkTogglePrivacy() { return AdminPanel.bulkTogglePrivacy(); },
+
     // ==========================================
     // Activity Log (delegated to ActivityLog)
     // ==========================================
