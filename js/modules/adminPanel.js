@@ -9,6 +9,9 @@ import { UI } from '../ui.js';
 import { ActivityLog } from './activityLog.js';
 import { ImageManager } from './imageManager.js';
 
+// Access global Supabase client
+const db = window.db;
+
 export const AdminPanel = {
     /**
      * Show/hide admin panel button based on auth state.
@@ -126,7 +129,10 @@ export const AdminPanel = {
         }
 
         list.innerHTML = filtered.map(strain => `
-            <div class="admin-list-item ${strain.is_private ? 'private' : 'public'}">
+            <div class="admin-list-item ${strain.is_private ? 'private' : 'public'}" data-strain-id="${strain.id}">
+                <div class="admin-item-checkbox">
+                    <input type="checkbox" class="strain-select-checkbox" value="${strain.id}" onchange="App.updateBulkActionButtons()">
+                </div>
                 <div class="admin-item-info">
                     <div class="admin-item-title">${this.escapeHtml(strain.name)}</div>
                     <div class="admin-item-meta">
@@ -200,6 +206,154 @@ export const AdminPanel = {
             }
         } catch (err) {
             console.error('Error toggling privacy:', err);
+            UI.showToast('Fehler beim Ändern der Sichtbarkeit', 'error');
+        }
+    },
+
+    /**
+     * Toggle select all checkboxes for strains.
+     */
+    toggleSelectAllStrains() {
+        const selectAllCheckbox = document.getElementById('bulk-select-all-checkbox');
+        const checkboxes = document.querySelectorAll('.strain-select-checkbox');
+        const isChecked = selectAllCheckbox.checked;
+
+        checkboxes.forEach(cb => {
+            cb.checked = isChecked;
+        });
+
+        this.updateBulkActionButtons();
+    },
+
+    /**
+     * Update bulk action buttons state based on selection.
+     */
+    updateBulkActionButtons() {
+        const selectedCheckboxes = document.querySelectorAll('.strain-select-checkbox:checked');
+        const deleteBtn = document.getElementById('bulk-delete-btn');
+        const privacyBtn = document.getElementById('bulk-privacy-btn');
+        const hasSelection = selectedCheckboxes.length > 0;
+
+        if (deleteBtn) deleteBtn.disabled = !hasSelection;
+        if (privacyBtn) privacyBtn.disabled = !hasSelection;
+
+        // Update "Select All" checkbox state
+        const selectAllCheckbox = document.getElementById('bulk-select-all-checkbox');
+        const totalCheckboxes = document.querySelectorAll('.strain-select-checkbox').length;
+        if (selectAllCheckbox && totalCheckboxes > 0) {
+            selectAllCheckbox.checked = selectedCheckboxes.length === totalCheckboxes;
+            selectAllCheckbox.indeterminate = hasSelection && selectedCheckboxes.length < totalCheckboxes;
+        }
+    },
+
+    /**
+     * Get selected strain IDs from checkboxes.
+     * @returns {string[]} Array of selected strain IDs
+     */
+    getSelectedStrainIds() {
+        const checkboxes = document.querySelectorAll('.strain-select-checkbox:checked');
+        return Array.from(checkboxes).map(cb => cb.value);
+    },
+
+    /**
+     * Bulk delete selected strains.
+     */
+    async bulkDeleteStrains() {
+        const selectedIds = this.getSelectedStrainIds();
+        if (selectedIds.length === 0) return;
+
+        if (!confirm(`Möchtest du ${selectedIds.length} Sorten wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`)) {
+            return;
+        }
+
+        try {
+            // Get strain data for activity logs before deletion
+            const strainsToDelete = state.adminStrains.filter(s => selectedIds.includes(s.id));
+
+            const { error } = await db
+                .from('strains')
+                .delete()
+                .in('id', selectedIds);
+
+            if (error) throw error;
+
+            UI.showToast(`${selectedIds.length} Sorten gelöscht`, 'success');
+
+            // Log activities for each deleted strain
+            strainsToDelete.forEach(strain => {
+                ActivityLog.logActivity('delete', strain);
+            });
+
+            // Update local state
+            state.adminStrains = state.adminStrains.filter(s => !selectedIds.includes(s.id));
+            state.strains = state.strains.filter(s => !selectedIds.includes(s.id));
+
+            // Reset selection and re-render
+            document.getElementById('bulk-select-all-checkbox').checked = false;
+            this.updateBulkActionButtons();
+            this.renderAdminStrains();
+
+            // Update main UI stats
+            const { StrainManager } = await import('./strainManager.js');
+            StrainManager.applyFilters();
+        } catch (err) {
+            console.error('Error bulk deleting strains:', err);
+            UI.showToast('Fehler beim Löschen der Sorten', 'error');
+        }
+    },
+
+    /**
+     * Bulk toggle privacy for selected strains.
+     */
+    async bulkTogglePrivacy() {
+        const selectedIds = this.getSelectedStrainIds();
+        if (selectedIds.length === 0) return;
+
+        // Determine target privacy state based on majority
+        const selectedStrains = state.adminStrains.filter(s => selectedIds.includes(s.id));
+        const privateCount = selectedStrains.filter(s => s.is_private).length;
+        const targetIsPrivate = privateCount < selectedIds.length / 2;
+
+        try {
+            const { error } = await db
+                .from('strains')
+                .update({ is_private: targetIsPrivate })
+                .in('id', selectedIds);
+
+            if (error) throw error;
+
+            UI.showToast(`${selectedIds.length} Sorten auf ${targetIsPrivate ? 'privat' : 'öffentlich'} gesetzt`, 'success');
+
+            // Log activities and update local state
+            selectedStrains.forEach(strain => {
+                if (strain.is_private !== targetIsPrivate) {
+                    ActivityLog.logActivity('privacy_toggle', strain, {
+                        previous_state: strain.is_private,
+                        new_state: targetIsPrivate,
+                        is_private: targetIsPrivate,
+                        bulk_operation: true
+                    });
+                }
+                strain.is_private = targetIsPrivate;
+            });
+
+            // Update main strains list
+            state.strains.forEach(s => {
+                if (selectedIds.includes(s.id)) {
+                    s.is_private = targetIsPrivate;
+                }
+            });
+
+            // Reset selection and re-render
+            document.getElementById('bulk-select-all-checkbox').checked = false;
+            this.updateBulkActionButtons();
+            this.renderAdminStrains();
+
+            // Update main UI
+            const { StrainManager } = await import('./strainManager.js');
+            StrainManager.applyFilters();
+        } catch (err) {
+            console.error('Error bulk toggling privacy:', err);
             UI.showToast('Fehler beim Ändern der Sichtbarkeit', 'error');
         }
     },

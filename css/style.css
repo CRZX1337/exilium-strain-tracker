@@ -2489,6 +2489,87 @@ textarea,
     color: var(--accent);
 }
 
+/* Bulk Actions Toolbar */
+.bulk-actions-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 16px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+    animation: fadeIn 0.3s ease;
+}
+
+.bulk-select-all {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    user-select: none;
+}
+
+.bulk-select-all input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    margin: 0;
+}
+
+.bulk-select-all span {
+    transition: color var(--transition-fast);
+}
+
+.bulk-select-all:hover span {
+    color: var(--text-primary);
+}
+
+.bulk-action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.bulk-action-buttons .btn {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all var(--transition-fast);
+}
+
+.bulk-action-buttons .btn svg {
+    flex-shrink: 0;
+}
+
+.bulk-action-buttons .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Admin Item Checkbox */
+.admin-item-checkbox {
+    display: flex;
+    align-items: center;
+    margin-right: 4px;
+}
+
+.admin-item-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    margin: 0;
+}
+
 /* Admin List (for strains and users) with stagger animation */
 .admin-list {
     display: flex;
@@ -2499,7 +2580,6 @@ textarea,
 .admin-list-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 12px;
     padding: 14px 16px;
     background: var(--bg-card);
@@ -2508,6 +2588,20 @@ textarea,
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     opacity: 0;
     animation: slideInLeft 0.4s ease forwards;
+}
+
+/* Highlight selected items - use has() for modern browsers, fallback for older */
+.admin-list-item:has(.strain-select-checkbox:checked) {
+    background: var(--accent-subtle);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Fallback for browsers without :has() support */
+.admin-list-item.selected {
+    background: var(--accent-subtle);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
 }
 
 .admin-list-item:nth-child(1) { animation-delay: 0.05s; }
@@ -2925,6 +3019,24 @@ textarea,
     .admin-filter .form-select {
         flex: 1;
         min-width: 0;
+    }
+
+    /* Mobile bulk actions */
+    .bulk-actions-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .bulk-action-buttons {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .bulk-action-buttons .btn {
+        flex: 1;
+        justify-content: center;
     }
 
     .admin-list-item {

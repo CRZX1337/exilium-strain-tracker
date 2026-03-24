@@ -6,6 +6,9 @@
 import { state } from './state.js';
 import { UI } from '../ui.js';
 
+// Access global Supabase client
+const db = window.db;
+
 export const ImageManager = {
     /**
      * Generate a UUID v4 for filenames.
@@ -82,7 +85,10 @@ export const ImageManager = {
         }
         const fileInput = document.getElementById('strain-image');
         if (fileInput) fileInput.value = '';
-        
+
+        // Set flag to indicate existing image should be removed
+        state._removeExistingImage = true;
+
         // Remove uploading animation
         const uploadBtn = document.getElementById('upload-btn');
         if (uploadBtn) {

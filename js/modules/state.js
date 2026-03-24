@@ -1,4 +1,4 @@
-/**
+-/**
  * @fileoverview Shared application state for the Exilium Strain Tracker.
  * This module exports the reactive state object used across all modules.
  */
@@ -67,4 +67,13 @@ export const state = {
     
     /** @type {Object|null} Current context menu target */
     _contextTarget: null,
+
+    /** @type {boolean} Flag to remove existing image when editing */
+    _removeExistingImage: false,
+
+    /** @type {Object|null} Original strain data for diff tracking */
+    _originalStrain: null,
+
+    /** @type {number} Timestamp of last save for rate limiting */
+    _lastSaveTime: 0,
 };

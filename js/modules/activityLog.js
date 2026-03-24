@@ -7,6 +7,9 @@ import { state } from './state.js';
 import { Auth } from '../supabase-auth.js';
 import { UI } from '../ui.js';
 
+// Access global Supabase client
+const db = window.db;
+
 export const ActivityLog = {
     /**
      * Log an activity to the activity_logs table.

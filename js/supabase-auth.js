@@ -6,6 +6,9 @@ import { UI } from './ui.js';
 import { state } from './modules/state.js';
 import { AdminPanel } from './modules/adminPanel.js';
 
+// Access global Supabase client
+const db = window.db;
+
 export const Auth = {
     /** Current authenticated user (null if logged out) */
     user: null,

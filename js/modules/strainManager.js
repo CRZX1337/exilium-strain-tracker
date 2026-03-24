@@ -9,6 +9,9 @@ import { UI } from '../ui.js';
 import { ActivityLog } from './activityLog.js';
 import { ImageManager } from './imageManager.js';
 
+// Access global Supabase client
+const db = window.db;
+
 export const StrainManager = {
     // ==========================================
     // URL State Management (strain in URL = name slug)
@@ -353,6 +356,10 @@ export const StrainManager = {
      * Save strain (add or edit).
      */
     async saveStrain() {
+        // Rate limiting check (Task 4)
+        if (Date.now() - state._lastSaveTime < 2000) return;
+        state._lastSaveTime = Date.now();
+
         const submitBtn = document.getElementById('submit-strain-btn');
         const name = document.getElementById('strain-name').value.trim();
         const type = document.getElementById('strain-type').value;
@@ -437,6 +444,30 @@ export const StrainManager = {
             }
 
             if (state.editingId) {
+                // Handle explicit image removal if flag is set and no new file uploaded (Task 1)
+                if (state._removeExistingImage && fileInput.files.length === 0) {
+                    strainData.image_url = null;
+                }
+
+                // Compute diff for activity log (Task 2)
+                const changes = {};
+                if (state._originalStrain) {
+                    const fieldsToCompare = ['name', 'type', 'medical_name', 'rating', 'thc_content', 'cbd_content', 'price', 'effects', 'taste', 'notes', 'importer', 'is_private'];
+                    fieldsToCompare.forEach(field => {
+                        const oldVal = state._originalStrain[field];
+                        const newVal = strainData[field];
+                        if (oldVal !== newVal) {
+                            changes[field] = `${oldVal ?? '-'} → ${newVal ?? '-'}`;
+                        }
+                    });
+                    // Handle image_url separately
+                    const oldImg = state._originalStrain.image_url;
+                    const newImg = strainData.image_url;
+                    if (oldImg !== newImg) {
+                        changes.image = oldImg ? 'Bild entfernt' : 'Bild hinzugefügt';
+                    }
+                }
+
                 // Update
                 const { error } = await db
                     .from('strains')
@@ -446,9 +477,9 @@ export const StrainManager = {
                 if (error) throw error;
                 UI.showToast('Sorte aktualisiert');
 
-                // Log activity
+                // Log activity with changes (Task 2)
                 const updatedStrain = { ...strainData, id: state.editingId };
-                ActivityLog.logActivity('update', updatedStrain);
+                ActivityLog.logActivity('update', updatedStrain, Object.keys(changes).length > 0 ? { changes } : null);
 
                 // Update local state to avoid full reload
                 const index = state.strains.findIndex(s => s.id === state.editingId);
@@ -517,6 +548,8 @@ export const StrainManager = {
 
         state.editingId = id;
         state.formRating = strain.rating || 0;
+        state._removeExistingImage = false; // Reset flag when opening edit modal (Task 1)
+        state._originalStrain = JSON.parse(JSON.stringify(strain)); // Deep clone for diff tracking (Task 2)
 
         document.getElementById('form-title').textContent = 'Sorte bearbeiten';
         document.getElementById('strain-name').value = strain.name;
@@ -540,6 +573,7 @@ export const StrainManager = {
             ImageManager.updateImagePreviewUI(strain.image_url, 'Aktuelles Foto');
         } else {
             ImageManager.removeImagePreview();
+            state._removeExistingImage = false; // Reset since there's no image to remove
         }
         
         // Sync custom dropdown UI for Type
