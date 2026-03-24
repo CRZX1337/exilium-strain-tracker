@@ -1,4 +1,4 @@
--/**
+/**
  * @fileoverview Shared application state for the Exilium Strain Tracker.
  * This module exports the reactive state object used across all modules.
  */
