@@ -152,6 +152,47 @@ const App = {
                 }
             }
         });
+
+        // Swipe-to-close bottom sheet modals on touch devices
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            const modal = overlay.querySelector('.modal');
+            if (!modal) return;
+
+            let _swStartY = 0;
+            let _swDelta = 0;
+
+            const _swClose = () => {
+                modal.style.transition = '';
+                modal.style.transform = '';
+                if (overlay.id === 'detail-modal') {
+                    StrainManager.closeDetail();
+                } else {
+                    UI.hideModal(overlay.id);
+                    StrainManager.resetForm();
+                }
+            };
+
+            modal.addEventListener('touchstart', (e) => {
+                _swStartY = e.touches[0].clientY;
+                _swDelta = 0;
+                modal.style.transition = 'none';
+            }, { passive: true });
+
+            modal.addEventListener('touchmove', (e) => {
+                _swDelta = Math.min(300, Math.max(0, e.touches[0].clientY - _swStartY));
+                modal.style.transform = `translateY(${_swDelta}px)`;
+            }, { passive: true });
+
+            modal.addEventListener('touchend', () => {
+                if (_swDelta > 80) {
+                    _swClose();
+                } else {
+                    modal.style.transition = '';
+                    modal.style.transform = '';
+                }
+                _swDelta = 0;
+            }, { passive: true });
+        });
     },
 
     /** Attach mouse tracking listeners to individual cards for performance */
