@@ -173,6 +173,16 @@ const App = {
             };
 
             modal.addEventListener('touchstart', (e) => {
+                const t = e.target;
+                if (
+                    t.tagName === 'IMG' ||
+                    t.tagName === 'BUTTON' ||
+                    t.hasAttribute('onclick') ||
+                    t.closest('[onclick]') ||
+                    t.closest('.detail-image-container') ||
+                    t.closest('.strain-image-container') ||
+                    t.closest('button')
+                ) return;
                 _swStartY = e.touches[0].clientY;
                 _swDelta = 0;
                 modal.style.transition = 'none';
@@ -657,9 +667,10 @@ const App = {
 })();
 
 // ==========================================
-// Export App to global scope for inline handlers
+// Export App and UI to global scope for inline handlers
 // ==========================================
 window.App = App;
+window.UI = UI;
 
 // Start the app
 document.addEventListener('DOMContentLoaded', () => App.init());
