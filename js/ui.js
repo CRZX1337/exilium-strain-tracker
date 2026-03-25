@@ -84,7 +84,7 @@ export const UI = {
       btn.className = `star-btn ${i <= currentRating ? 'filled' : ''}`;
       btn.textContent = '★';
       btn.onclick = () => {
-        App.formRating = i;
+        state.formRating = i;
         this.renderStarInput(containerId, i);
       };
       container.appendChild(btn);
