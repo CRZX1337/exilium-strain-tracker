@@ -759,6 +759,24 @@ body::before {
     color: var(--star);
 }
 
+/* Half star: clip left 50% of the ★ to amber, leave rest empty */
+.strain-stars .star.half {
+    position: relative;
+    color: var(--star-empty);
+}
+.strain-stars .star.half::before {
+    content: '\2605';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--star);
+    width: 50%;
+    overflow: hidden;
+    white-space: nowrap;
+    display: block;
+}
+
+
 .strain-meta {
     display: flex;
     gap: 16px;
@@ -1095,6 +1113,84 @@ body::before {
 .star-rating-input .star-btn.filled {
     color: var(--star);
 }
+
+/* --- Half-star input widget --- */
+/*
+  Visual layers (all via wrapper pseudo-elements; buttons are hit-zones only):
+  ::before = always-visible empty ★ (grey)
+  ::after  = lit amber ★, clipped to 50% (half-lit) or 100% (full-lit)
+*/
+.star-input-wrap {
+    position: relative;
+    display: inline-block;
+    font-size: 24px;
+    line-height: 1;
+    width: 26px;
+    height: 26px;
+    transition: transform var(--transition-fast);
+}
+
+/* Empty background star */
+.star-input-wrap::before {
+    content: '\2605';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--star-empty);
+    pointer-events: none;
+}
+
+/* Lit amber star – clipped to left 50% by default (half), 100% when full */
+.star-input-wrap::after {
+    content: '\2605';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--star);
+    pointer-events: none;
+    /* Hidden by default */
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path var(--transition-fast);
+}
+
+/* Half lit: show left 50% of star */
+.star-input-wrap.half-lit::after,
+.star-input-wrap.half-preview::after {
+    clip-path: inset(0 50% 0 0);
+}
+
+/* Full lit: show entire star */
+.star-input-wrap.full-lit::after,
+.star-input-wrap.full-preview::after {
+    clip-path: inset(0 0% 0 0);
+}
+
+/* Transparent, invisible hit-zone buttons – no characters, no pseudo-elements */
+.star-half-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    color: transparent;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    z-index: 1;
+}
+
+.star-half-btn.left  { left: 0; }
+.star-half-btn.right { left: 50%; }
+
+.star-input-wrap:hover {
+    transform: scale(1.1);
+}
+
 
 /* --- Password / Login Prompt --- */
 .password-prompt {
@@ -3245,11 +3341,10 @@ padding-right: 40px;
         min-height: 44px;
     }
 
-    .star-rating-input .star-btn {
-        padding: 8px;
-        font-size: 28px;
-        min-width: 44px;
-        min-height: 44px;
+    .star-input-wrap {
+        width: 36px;
+        height: 36px;
+        font-size: 30px;
     }
 
     .search-clear-btn {

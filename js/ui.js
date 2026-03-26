@@ -65,30 +65,85 @@ export const UI = {
     `).join('');
   },
 
-  // --- Render star icons ---
+  // --- Render star icons (supports 0.5 increments) ---
   renderStars(rating) {
     let stars = '';
     for (let i = 1; i <= 5; i++) {
-      stars += `<span class="star ${i <= rating ? 'filled' : ''}">★</span>`;
+      if (rating >= i) {
+        stars += `<span class="star filled">★</span>`;
+      } else if (rating >= i - 0.5) {
+        stars += `<span class="star half">★</span>`;
+      } else {
+        stars += `<span class="star">★</span>`;
+      }
     }
     return stars;
   },
 
-  // --- Render star rating input ---
+  // --- Render star rating input (0.5 increments) ---
   renderStarInput(containerId, currentRating = 0) {
     const container = document.getElementById(containerId);
     container.innerHTML = '';
+    container.className = 'star-rating-input';
+
+    /** Apply wrapper-level lit classes based on rating vs star index */
+    const applyWrapperLit = (wrap, starIndex, rating) => {
+      wrap.classList.remove('half-lit', 'full-lit');
+      if (rating >= starIndex)       wrap.classList.add('full-lit');
+      else if (rating >= starIndex - 0.5) wrap.classList.add('half-lit');
+    };
+
+    const wrappers = [];
+
     for (let i = 1; i <= 5; i++) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = `star-btn ${i <= currentRating ? 'filled' : ''}`;
-      btn.textContent = '★';
-      btn.onclick = () => {
-        state.formRating = i;
-        this.renderStarInput(containerId, i);
-      };
-      container.appendChild(btn);
+      const wrap = document.createElement('span');
+      wrap.className = 'star-input-wrap';
+      applyWrapperLit(wrap, i, currentRating);
+
+      // Left half button = i - 0.5
+      const halfBtn = document.createElement('button');
+      halfBtn.type = 'button';
+      halfBtn.className = 'star-half-btn left';
+      halfBtn.dataset.value = i - 0.5;
+      halfBtn.setAttribute('aria-label', `${i - 0.5} stars`);
+
+      // Right half button = i
+      const fullBtn = document.createElement('button');
+      fullBtn.type = 'button';
+      fullBtn.className = 'star-half-btn right';
+      fullBtn.dataset.value = i;
+      fullBtn.setAttribute('aria-label', `${i} stars`);
+
+      wrap.appendChild(halfBtn);
+      wrap.appendChild(fullBtn);
+      container.appendChild(wrap);
+      wrappers.push(wrap);
     }
+
+    // Click: set rating and re-render
+    container.addEventListener('click', (e) => {
+      const btn = e.target.closest('.star-half-btn');
+      if (!btn) return;
+      state.formRating = parseFloat(btn.dataset.value);
+      this.renderStarInput(containerId, state.formRating);
+    });
+
+    // Hover preview: set half-preview / full-preview on wrappers
+    container.addEventListener('mouseover', (e) => {
+      const btn = e.target.closest('.star-half-btn');
+      if (!btn) return;
+      const hoverVal = parseFloat(btn.dataset.value);
+      wrappers.forEach((w, idx) => {
+        const starIndex = idx + 1;
+        w.classList.remove('half-preview', 'full-preview');
+        if (hoverVal >= starIndex)       w.classList.add('full-preview');
+        else if (hoverVal >= starIndex - 0.5) w.classList.add('half-preview');
+      });
+    });
+
+    container.addEventListener('mouseleave', () => {
+      wrappers.forEach(w => w.classList.remove('half-preview', 'full-preview'));
+    });
   },
 
   // --- Update stats bar ---
