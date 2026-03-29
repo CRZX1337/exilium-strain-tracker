@@ -671,6 +671,7 @@ const App = {
 // ==========================================
 window.App = App;
 window.UI = UI;
+window.Auth = Auth; // Added so Auth.showSignOutConfirm() works from inline HTML handler
 
 // Start the app
 document.addEventListener('DOMContentLoaded', () => App.init());
