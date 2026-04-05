@@ -1,7 +1,7 @@
 // ==========================================
 // IP Tracker Module
-// Fetches visitor's IPv4 + geo info, then POSTs to the
-// local server which saves logs/{ip}.json
+// Fetches visitor's IPv4 + geo info, then inserts
+// into Supabase visitor_logs table
 // ==========================================
 
 (async function initIPTracker() {
@@ -20,7 +20,7 @@
         if (!geoRes.ok) throw new Error(`ipapi.co returned ${geoRes.status}`);
         const geo = await geoRes.json();
 
-        // Step 3: Build the log record
+        // Step 3: Build the log record for Supabase
         const logEntry = {
             ip_address: ipv4                 || 'unknown',
             country:    geo.country_name     || null,
@@ -32,19 +32,16 @@
             referrer:   document.referrer    || null,
         };
 
-        // Step 4: POST to local server — it writes logs/{ip}.json
-        const res = await fetch('/log-visit', {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify(logEntry),
-            signal:  AbortSignal.timeout(5000)
-        });
-
-        const result = await res.json();
-        if (result.ok) {
-            console.log(`[IP Tracker] Logged ✓ ${logEntry.ip_address} (visit #${result.visits})`);
+        // Step 4: Insert into Supabase
+        if (window.db) {
+            const { error } = await window.db.from('visitor_logs').insert([logEntry]);
+            if (error) {
+                console.warn('[IP Tracker] Supabase insert error:', error.message);
+            } else {
+                console.log(`[IP Tracker] Logged visit to Supabase ✓ (${logEntry.ip_address})`);
+            }
         } else {
-            console.warn('[IP Tracker] Server error:', result.error);
+            console.warn('[IP Tracker] Supabase client (window.db) not found!');
         }
 
     } catch (err) {
