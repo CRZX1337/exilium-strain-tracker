@@ -32,6 +32,6 @@ js/supabase-config.js
 
 # Icon generation script
 generate-icons.js
-
-
+# IP visitor logs (local only — never commit)
+logs/*.json
 
