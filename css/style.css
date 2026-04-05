@@ -1575,11 +1575,14 @@ body::before {
 /* --- Added/Edited Highlights --- */
 
 
-/* --- Custom Dropdown --- */
 .custom-select-wrapper {
     position: relative;
     user-select: none;
     width: 100%;
+}
+
+.custom-select-wrapper.open {
+    z-index: 9999;
 }
 
 .custom-select-trigger {
