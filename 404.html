@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Exilium Tracker</title>
+  <script>
+    // GitHub Pages SPA fallback — redirect 404s back to index.html
+    // Preserves the original path as a query param so the app can restore it
+    (function () {
+      var path = window.location.pathname;
+      var search = window.location.search;
+      var hash = window.location.hash;
+      // Build the redirect URL: root page with the attempted path as ?p=...
+      var redirect = window.location.origin +
+        window.location.pathname.split('/').slice(0, -1).join('/') + '/' +
+        '?p=' + encodeURIComponent(path + search) +
+        (hash ? '&hash=' + encodeURIComponent(hash) : '');
+      window.location.replace(redirect);
+    })();
+  </script>
+</head>
+<body>
+  <p>Redirecting…</p>
+</body>
+</html>
