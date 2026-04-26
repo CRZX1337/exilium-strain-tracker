@@ -5,7 +5,7 @@
 <h1 align="center">Exilium Tracker</h1>
 
 <p align="center">
-  <a href="https://exilium.space">🚀 Live</a>
+  <a href="https://crzx1337.github.io/exilium-strain-tracker/">🚀 Live</a>
   <span>·</span>
   <span>⚡ Vanilla JS</span>
 </p>
