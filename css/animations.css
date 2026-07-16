@@ -1,0 +1,354 @@
+/* ==========================================================================
+   EXILIUM — Motion Layer (loads after style.css)
+
+   Every @keyframes used by the design system lives here. Timing rules:
+   - .strain-card.removing  → cardOut MUST finish < 350ms (JS re-renders then)
+   - modal close transition → ≤ 500ms (ui.js unlocks body scroll at 500ms)
+   - startup loader fade    → ≤ 800ms (JS removes the node at 800ms)
+   - login success          → draw choreography ends ≤ 1.0s (1400ms JS window)
+   - toast                  → node hard-removed at 3000ms: in 0.45s,
+                              countdown ends ~2.6s, out 2.65–2.95s
+   - cursorPulse 400ms / touchRipple 600ms / innerPulse 800ms (JS-coupled)
+   - NO keyframe may target .modal transform at ≤768px (swipe-to-close
+     writes inline transform per frame).
+
+   The reduced-motion block in style.css neutralizes this entire file.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Ambient mesh morph (body::before — transform only, GPU-cheap)
+   -------------------------------------------------------------------------- */
+@keyframes meshMorph {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  33%  { transform: translate3d(-4%, 2%, 0) rotate(2deg) scale(1.06); }
+  66%  { transform: translate3d(3%, -3%, 0) rotate(-2deg) scale(1.03); }
+  100% { transform: translate3d(-2%, 3%, 0) rotate(1.5deg) scale(1.08); }
+}
+
+/* --------------------------------------------------------------------------
+   Page-load sequence
+   navIn: header blur-in (opacity/filter only — .header-hidden owns transform)
+   riseIn: stats + controls staggered entrance
+   -------------------------------------------------------------------------- */
+@keyframes navIn {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.stats-bar .stat-card,
+.controls-bar {
+  animation: riseIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.stats-bar .stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stats-bar .stat-card:nth-child(2) { animation-delay: 0.18s; }
+.stats-bar .stat-card:nth-child(3) { animation-delay: 0.26s; }
+.stats-bar .stat-card:nth-child(4) { animation-delay: 0.34s; }
+.controls-bar { animation-delay: 0.45s; }
+
+/* --------------------------------------------------------------------------
+   Cards (strain grid + skeletons; per-card delay comes inline from ui.js)
+   -------------------------------------------------------------------------- */
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* JS waits 350ms after adding .removing — must complete before that */
+@keyframes cardOut {
+  to {
+    opacity: 0;
+    transform: scale(0.9) translateY(24px);
+    filter: blur(4px);
+  }
+}
+
+@keyframes flashHighlight {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    border-color: var(--accent-primary);
+  }
+  70% {
+    box-shadow: 0 0 0 20px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    border-color: var(--glass-border);
+  }
+}
+
+/* placeholder logo life */
+@keyframes strainPlaceholderFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+
+@keyframes strainPlaceholderGlow {
+  0%   { filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.3)); }
+  100% { filter: drop-shadow(0 0 14px rgba(34, 197, 94, 0.5)); }
+}
+
+@keyframes strainPlaceholderGlowHover {
+  0%   { filter: drop-shadow(0 0 14px rgba(34, 197, 94, 0.5)) drop-shadow(0 0 20px rgba(34, 197, 94, 0.2)); }
+  100% { filter: drop-shadow(0 0 20px rgba(34, 197, 94, 0.7)) drop-shadow(0 0 28px rgba(34, 197, 94, 0.3)); }
+}
+
+/* --------------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------------- */
+@keyframes ripple {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+  }
+}
+
+/* primary CTA shimmer sweep */
+@keyframes sweep {
+  to {
+    transform: translateX(110%);
+  }
+}
+
+/* upload button pulse — JS holds .uploading ~800ms */
+@keyframes innerPulse {
+  0%   { opacity: 0.3; box-shadow: inset 0 0 6px rgba(34, 197, 94, 0.4); }
+  50%  { opacity: 0.7; box-shadow: inset 0 0 10px rgba(34, 197, 94, 0.8); }
+  100% { opacity: 0.3; box-shadow: inset 0 0 6px rgba(34, 197, 94, 0.4); }
+}
+
+/* --------------------------------------------------------------------------
+   Logo / icons
+   -------------------------------------------------------------------------- */
+@keyframes logoBreath {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.3));
+  }
+  50% {
+    transform: scale(1.03);
+    filter: drop-shadow(0 0 16px rgba(34, 197, 94, 0.5));
+  }
+}
+
+@keyframes floatIcon {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+/* pulsing ring for empty states */
+@keyframes emptyPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.35); }
+  70%  { box-shadow: 0 0 0 24px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* --------------------------------------------------------------------------
+   Generic reveals
+   -------------------------------------------------------------------------- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   Modal feedback (restarted by JS via reflow — no locking transform fill
+   after finish; `both` matches the original behavior)
+   -------------------------------------------------------------------------- */
+@keyframes shake {
+  10%, 90% { transform: scale(1) translate3d(-1px, 0, 0); }
+  20%, 80% { transform: scale(1) translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: scale(1) translate3d(-4px, 0, 0); }
+  40%, 60% { transform: scale(1) translate3d(4px, 0, 0); }
+}
+
+@keyframes successPulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+/* login checkmark draw — ends ≤ 1.0s inside the 1400ms JS window */
+@keyframes drawCircle {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes drawCheck {
+  to { stroke-dashoffset: 0; }
+}
+
+/* --------------------------------------------------------------------------
+   Toasts — full lifecycle inside the 3000ms hard removal
+   -------------------------------------------------------------------------- */
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateX(120%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes toastOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(60%);
+  }
+}
+
+/* countdown bar (toast::after) */
+@keyframes toastBar {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+/* --------------------------------------------------------------------------
+   Loading
+   -------------------------------------------------------------------------- */
+@keyframes spinConic {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes skeletonShimmer {
+  0%   { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+/* --------------------------------------------------------------------------
+   Lightbox
+   -------------------------------------------------------------------------- */
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Startup loader
+   -------------------------------------------------------------------------- */
+@keyframes glowPulseImage {
+  0% {
+    filter: drop-shadow(0 0 5px rgba(34, 197, 94, 0.2));
+    transform: scale(0.98);
+  }
+  100% {
+    filter: drop-shadow(0 0 20px rgba(34, 197, 94, 0.6));
+    transform: scale(1.02);
+  }
+}
+
+@keyframes lightSweep {
+  0%   { background-position: 100% 50%; }
+  100% { background-position: -100% 50%; }
+}
+
+/* --------------------------------------------------------------------------
+   Admin lists / image tiles
+   -------------------------------------------------------------------------- */
+@keyframes rowIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes tileIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dangerPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.25); }
+  50%      { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.08); }
+}
+
+/* --------------------------------------------------------------------------
+   Cursor & touch (JS-coupled durations)
+   -------------------------------------------------------------------------- */
+@keyframes cursorPulse {
+  0% {
+    width: 48px;
+    height: 48px;
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.6), inset 0 0 20px rgba(34, 197, 94, 0.3);
+  }
+  100% {
+    width: 64px;
+    height: 64px;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.2), inset 0 0 10px rgba(34, 197, 94, 0.1);
+    opacity: 0;
+  }
+}
+
+@keyframes touchRipple {
+  0% {
+    width: 20px;
+    height: 20px;
+    opacity: 1;
+  }
+  100% {
+    width: 100px;
+    height: 100px;
+    opacity: 0;
+  }
+}
